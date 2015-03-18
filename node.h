@@ -10,9 +10,13 @@ namespace ncr
 class Node
 {
 public:
-	Node(void);
+	Node(double _x = 0, double _y = 0);
 	~Node(void);
-	
+
+	double distance(const Node &node) const;
+	double distance2(const Node &node) const;
+
+	double x,y;
 };
 
 }

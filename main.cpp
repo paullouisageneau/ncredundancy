@@ -1,14 +1,14 @@
 
 #include "main.h"
-#include "node.h"
+#include "network.h"
 
 int main(int argc, char **argv)
 {
-	ncr::Node *node = new ncr::Node;
+	unsigned long seed = (unsigned long)(time(NULL));
 
-	std::cout << "TODO" << std::endl;
-
-	delete node;
+	ncr::Network network;
+	network.generate(seed, 10, 10.);
+	network.print();
 
 	return 0;
 }
