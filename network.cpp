@@ -81,6 +81,24 @@ bool Network::areNeighbors(int i, int j)
 	return adjancency(i,j);
 }
 
+void Network::getNeighbors(int i, std::vector<int> &result)
+{
+	for(int j=0; j<nodes.size(); j++)
+	{
+		if(areNeighbors(i,j)) result.push_back(j); // note: when i==j, they are not neighbors	
+	}
+}
+
+void Network::getLinkQuality(int i, std::vector<double> &result)
+{
+	std::vector<int> neighbors;
+	getNeighbors(i, neighbors);
+	for(std::vector<int>::iterator it = neighbors.begin(); it != neighbors.end(); it++)
+	{
+		result.push_back(linkQuality(i,*it));
+	}
+}
+
 void Network::computeAdjacencyMatrix(matrix<bool> &result)
 {
 	int i,j;

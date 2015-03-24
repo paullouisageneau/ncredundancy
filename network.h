@@ -32,8 +32,8 @@ public:
 	void update(void);						// Update the cached matrices and next hops
 
 	// These functions operate from cached matrices
-	void getLinkQuality(int i, vector<double> &result);		// Compute link quality with each neighbor q_v
-	void getNeighbors(int i, vector<int> &result);			// Get indices of neighbors
+	void getLinkQuality(int i, std::vector<double> &result);		// Compute link quality with each neighbor q_v
+	void getNeighbors(int i, std::vector<int> &result);			// Get indices of neighbors
 	double linkQuality(int i, int j);				// Link quality between i and j
 	bool areNeighbors(int i, int j);				// Are i and j neighbors ?			
 
