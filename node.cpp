@@ -6,7 +6,8 @@ namespace ncr
 
 Node::Node(double _x, double _y) :
 	x(_x),
-	y(_y)
+	y(_y),
+	forward(false)
 {
 
 }

@@ -7,5 +7,7 @@
 #include <cmath>
 #include <ctime>
 
+typedef unsigned char uint8_t;
+
 #endif
 
