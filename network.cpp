@@ -17,6 +17,16 @@ Network::~Network(void)
 
 }
 
+void Network::setThreshold(double thresh)
+{
+	threshold = thresh;	
+}
+	
+double Network::getThreshold ()
+{
+	return threshold;
+}
+
 void Network::generateRandom(unsigned long seed, int count, double radius)
 {
 	boost::mt19937 gen;
@@ -63,17 +73,7 @@ double Network::linkQualityFromDistance(double distance)
 
 double Network::linkQuality(int i, int j)
 {
-	return linkQualityFromDistance(nodes[i].distance(nodes[j]));
-}
-
-void Network::setThreshold(double thresh)
-{
-	threshold = thresh;	
-}
-	
-double Network::getThreshold ()
-{
-	return threshold;
+	return links(i,j);
 }
 
 bool Network::areNeighbors(int i, int j)
@@ -112,6 +112,18 @@ void Network::computeAdjacencyMatrix(matrix<bool> &result)
 	}
 }
 
+void Network::computeLinkMatrix(matrix<double> &result)
+{
+	int i,j;
+	for(i=0; i<nodes.size(); i++)
+	{
+		for(j=0; j<nodes.size(); j++)
+		{
+			if(i==j) result(i,j)=1;   // define: q_ii = 1
+			else result(i,j)=linkQualityFromDistance(nodes[i].distance(nodes[j]));
+		}
+	}
+}
 
 }
 

@@ -20,6 +20,10 @@ class Network
 public:
 	Network(void);
 	~Network(void);
+	
+	// Set up threshold of distance for neighbors
+	void setThreshold(double thresh);              // set the threshold of distance of neighbors
+	double getThreshold ();                        // get the threshold of distance of neighbors
 
 	void generateRandom(unsigned long seed, int count, double radius);
 	void generateMesh(int nx, int ny, double stepx, double stepy);
@@ -39,8 +43,7 @@ public:
 
 	// Packet transmission simulation
 	void sendPacket(const Packet &packet, int i);			// Simulate sending from i
-	void setThreshold(double thresh);              // set the threshold of distance of neighbors
-	double getThreshold ();                        // get the threshold of distance of neighbors
+	
 
 private:
 	void computeLinkMatrix(matrix<double> &result);			// Compute matrix of q_ij link quality between i and j
