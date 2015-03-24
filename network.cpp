@@ -61,5 +61,39 @@ double Network::linkQualityFromDistance(double distance)
 	return std::min(1., reference/(distance*distance));
 }
 
+double Network::linkQuality(int i, int j)
+{
+	return linkQualityFromDistance(nodes[i].distance(nodes[j]));
+}
+
+void Network::setThreshold(double thresh)
+{
+	threshold = thresh;	
+}
+	
+double Network::getThreshold ()
+{
+	return threshold;
+}
+
+bool Network::areNeighbors(int i, int j)
+{
+	return adjancency(i,j);
+}
+
+void Network::computeAdjacencyMatrix(matrix<bool> &result)
+{
+	int i,j;
+	for(i=0; i<nodes.size(); i++)
+	{
+		for(j=0; j<nodes.size(); j++)
+		{
+			if(i==j) result(i,j)=false;   // define: a node is NOT a neighbor to itself
+			else result(i,j)=(nodes[i].distance(nodes[j]) <= threshold);
+		}
+	}
+}
+
+
 }
 

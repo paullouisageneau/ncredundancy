@@ -1,9 +1,14 @@
+INC_DIR=/usr/local/Cellar/boost/1.56.0/include
+
 CC=gcc
 CXX=g++
 RM=rm -f
-CPPFLAGS=-g
+CPPFLAGS=-g -c -Wall $(addprefix -I,$(INC_DIR))
 LDFLAGS=-g
 LDLIBS=
+
+
+CCFLAGS=
 
 SRCS=$(shell printf "%s " *.cpp)
 OBJS=$(subst .cpp,.o,$(SRCS))

@@ -39,6 +39,8 @@ public:
 
 	// Packet transmission simulation
 	void sendPacket(const Packet &packet, int i);			// Simulate sending from i
+	void setThreshold(double thresh);              // set the threshold of distance of neighbors
+	double getThreshold ();                        // get the threshold of distance of neighbors
 
 private:
 	void computeLinkMatrix(matrix<double> &result);			// Compute matrix of q_ij link quality between i and j
@@ -52,6 +54,9 @@ private:
 	matrix<double> links;
 	matrix<bool>   adjancency;
 	matrix<int>    nexthops;
+	
+	double threshold; // Threshold of distance to determine whether two nodes are neighbors
+
 };
 
 }
