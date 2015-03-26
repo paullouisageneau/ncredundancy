@@ -4,7 +4,7 @@
 namespace ncr
 {
 
-Packet::Packet(int _size, int _index) :
+Packet::Packet(int _destination, int _size, int _index) :
 	size(_size)
 {
 	if(_index >= 0)

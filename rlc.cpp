@@ -270,7 +270,7 @@ bool Rlc::generate(Combination &output) const
 	return true;
 }
 
-bool Rlc::solve(Combination &incoming)
+bool Rlc::solve(Combination incoming)
 {
 	if(incoming.isNull())
 		return false;

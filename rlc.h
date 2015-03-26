@@ -53,7 +53,7 @@ public:
 	void clear(void);		// Clear system
 	
 	bool generate(Combination &output) const;	// Generate combination with count components
-	bool solve(Combination &incoming);		// Add combination and try to solve, return true if innovative
+	bool solve(Combination incoming);		// Add combination and try to solve, return true if innovative
 	void print(void) const;				// Print current system
 	
 	unsigned decodedCount(void) const;		// Return decoded combinations count

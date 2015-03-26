@@ -4,6 +4,7 @@
 
 #include "main.h"
 #include "packet.h"
+#include "rlc.h"
 
 #include <queue>
 #include <map>
@@ -24,11 +25,11 @@ public:
 	bool send(Packet &packet);		// Polling function for Network
 
 	double x,y;				// Position
-	std::vector<Node> 	neighbors;	// Neighbor nodes
 	std::vector<double>	link;		// *Measured* link quality
 	
+	Rlc			rlc;		// RLC coder/decoder
 	bool			forward;	// Forward-only mode ?
-	std::map<int, Packet>	incoming;	// Incoming buffer, sorted by pivot to enable solving
+		
 	std::queue<Packet>	outgoing;	// Outgoing queue
 };
 
