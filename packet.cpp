@@ -8,7 +8,7 @@ Packet::Packet(int _size, int _index) :
 	size(_size)
 {
 	if(_index >= 0)
-		combination.addComponent(unsigned(_index), 1);
+		addComponent(unsigned(_index), 1);
 }
 
 Packet::~Packet(void)

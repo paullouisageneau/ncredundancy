@@ -10,13 +10,12 @@
 namespace ncr
 {
 
-class Packet
+class Packet : public Rlc::Combination
 {
 public:
 	Packet(int _size, int _index = -1);
 	~Packet(void);
 
-	Rlc::Combination combination;	// Coefficients
 	int size;			// Data size
 };
 
