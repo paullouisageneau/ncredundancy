@@ -33,30 +33,31 @@ public:
 
 	virtual double linkQualityFromDistance(double distance);	// Get q from distance, just a simple function in 1/d^2
 	
-	void update(void);						// Update the cached matrices and next hops
+	void update(void);						// Update the cached matrices and routing
 
 	// These functions operate from cached matrices
-	void getLinkQuality(int i, std::vector<double> &result);		// Compute link quality with each neighbor q_v
-	void getNeighbors(int i, std::vector<int> &result);			// Get indices of neighbors
+	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v
+	void getNeighbors(int i, std::vector<int> &result);		// Get indices of neighbors
 	double linkQuality(int i, int j);				// Link quality between i and j
 	bool areNeighbors(int i, int j);				// Are i and j neighbors ?			
-
+	void getNextHops(int i, int from, int to, std::vector<int> &result);	// Get next hops for relay i (next hops for redundancy model)
+	
 	// Packet transmission simulation
 	void sendPacket(const Packet &packet, int i);			// Simulate sending from i
 	
-
 private:
-	void computeLinkMatrix(matrix<double> &result);			// Compute matrix of q_ij link quality between i and j
-	void computeAdjacencyMatrix(matrix<bool> &result);		// Compute adjacency matrix of the graph	
-									//   (use link matrix and threshold)
-	void computeNextHops(matrix<int> &result);			// Indices of next hops
+	void computeLinkMatrix(matrix<double> &result);				// Compute matrix of q_ij link quality between i and j
+	void computeAdjacencyMatrix(matrix<bool> &result);			// Compute adjacency matrix of the graph	
+										//   (use link matrix and threshold)
+	void computeRouting(matrix<int> &nexthops, matrix<int> &distances);	// Run Dijkstra's algorithm (distances returned in hops)
 
 	std::vector<Node> nodes;
 
 	// Cached matrices
 	matrix<double> links;
 	matrix<bool>   adjancency;
-	matrix<int>    nexthops;
+	matrix<int>    nexthops;	// next hops for routing (one per source-destination pair)
+	matrix<int>    distances;	// in hops
 	
 	double threshold; // Threshold of distance to determine whether two nodes are neighbors
 
