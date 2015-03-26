@@ -38,7 +38,7 @@ void Network::generateRandom(unsigned long seed, int count, double radius)
 	for(int i=0; i<count; ++i)
 	{
     		std::vector<double> position = uniform(gen);
-		nodes.push_back(Node(position[0]*radius, position[1]*radius));
+		nodes.push_back(Node(i, position[0]*radius, position[1]*radius));
 	}
 }
 
@@ -46,9 +46,10 @@ void Network::generateMesh(int nx, int ny, double stepx, double stepy)
 {
 	nodes.clear();
 	nodes.reserve(nx*ny);
-	for(int i=0; i<nx; ++i)
-		for(int j=0; j<ny; ++j)
-			nodes.push_back(Node(i*stepx, j*stepy));
+	int i=0;
+	for(int x=0; x<nx; ++x)
+		for(int y=0; y<ny; ++y)
+			nodes.push_back(Node(i++, x*stepx, y*stepy));
 }
 
 void Network::print(void) const

@@ -15,22 +15,25 @@ namespace ncr
 class Node
 {
 public:
-	Node(double _x = 0, double _y = 0);
+	Node(int _id, double _x = 0, double _y = 0);
 	~Node(void);
 
 	double distance(const Node &node) const;
 	double distance2(const Node &node) const;
 
-	void recv(const Packet &packet);	// Callback called when a packet is heard
-	bool send(Packet &packet);		// Polling function for Network
+	bool recv(const Packet &packet);		// Callback called when a packet is heard, returns true if nexthops should be computed and relay called
+	void relay(const Packet &packet, 		// Callback called with nexthops if recv returns true
+		const std::vector<int> &nexthops);	
+	bool send(Packet &packet);			// Polling function for Network
 
-	double x,y;				// Position
-	std::vector<double>	link;		// *Measured* link quality
+	int id;
+	double x,y;					// Position
+	std::vector<double>	link;			// *Measured* link quality
 	
-	Rlc			rlc;		// RLC coder/decoder
-	bool			forward;	// Forward-only mode ?
-		
-	std::queue<Packet>	outgoing;	// Outgoing queue
+	Rlc			rlc;			// RLC coder/decoder
+	bool			forward;		// Forward-only mode ?
+	
+	std::queue<Packet>	outgoing;		// Outgoing queue
 };
 
 }

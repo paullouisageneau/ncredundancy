@@ -4,7 +4,8 @@
 namespace ncr
 {
 
-Node::Node(double _x, double _y) :
+Node::Node(int _id, double _x, double _y) :
+	id(_id),
 	x(_x),
 	y(_y),
 	forward(false)
@@ -17,22 +18,28 @@ Node::~Node(void)
 
 }
 
-void Node::recv(const Packet &packet)
+bool Node::recv(const Packet &packet)
 {
-	// TODO: apply redundancy
-	
 	if(forward)
 	{
 		outgoing.push(packet);
+		return (packet.destination != id);
 	}
 	else {
-		if(rlc.solve(packet))
-		{
-			// OK, packet is innovative
-			Packet out(packet.destination, packet.size);	// create
-			rlc.generate(out);				// generate
-			outgoing.push(out);				// push out
-		}
+		bool isInnovative = rlc.solve(packet);
+		return (isInnovative && packet.destination != id);
+	}
+}
+
+void Node::relay(const Packet &packet, const std::vector<int> &nexthops)
+{
+	if(!forward && packet.destination != id)
+	{
+		// TODO: compute redundancy using links and apply it
+		
+		Packet out(packet.destination, packet.size);	// create
+		rlc.generate(out);				// generate
+		outgoing.push(out);				// push out
 	}
 }
 

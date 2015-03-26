@@ -43,7 +43,7 @@ public:
 	void getNextHops(int i, int from, int to, std::vector<int> &result);	// Get next hops for relay i (next hops for redundancy model)
 	
 	// Packet transmission simulation
-	void sendPacket(const Packet &packet, int i);			// Simulate sending from i
+	void sendPacket(const Packet &packet, int i, int from = -1);		// Simulate sending at i (from is the previous hop or -1 if i is the source)
 	
 private:
 	void computeLinkMatrix(matrix<double> &result);				// Compute matrix of q_ij link quality between i and j
