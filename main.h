@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <cassert>
 
 typedef unsigned char uint8_t;
 
