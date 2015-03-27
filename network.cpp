@@ -100,6 +100,26 @@ void Network::getLinkQuality(int i, std::vector<double> &result)
 	}
 }
 
+void Network::sendPacket(const Packet &packet, int sender, int from)
+{
+	std::vector<int> neighbors;
+	getNeighbors(sender, neighbors);
+	
+	for(int i=0; i<neighbors.size(); ++i)
+	{
+		int v = neighbors[i];
+		
+		// TODO: loss
+		
+		if(nodes[v].recv(packet))
+		{
+			std::vector<int> nexthops;
+			getNextHops(v, sender, packet.destination, nexthops);
+			nodes[v].relay(packet, nexthops);
+		}
+	}
+}
+
 void Network::computeAdjacencyMatrix(matrix<bool> &result)
 {
 	int i,j;
