@@ -54,15 +54,15 @@ void Network::generateMesh(int nx, int ny, double stepx, double stepy)
 
 void Network::print(void) const
 {
-	for(int i=0; i<nodes.size(); ++i)
+	for(int i=0; i<count(); ++i)
 	{
 		std::cout << "Node " << i << ": (x,y) = (" << nodes[i].x << "," << nodes[i].y << ")"<< std::endl;
 	}
 }
 
-unsigned int Network::count(void) const
+int Network::count(void) const
 {
-	return nodes.size();
+	return int(nodes.size());
 }
 
 double Network::linkQualityFromDistance(double distance)
@@ -72,6 +72,13 @@ double Network::linkQualityFromDistance(double distance)
 	return std::min(1., reference/(distance*distance));
 }
 
+void Network::update(void)
+{
+	computeLinkMatrix(links);
+	computeAdjacencyMatrix(adjacency);
+	computeRouting(nexthops, distances);
+}
+
 double Network::linkQuality(int i, int j)
 {
 	return links(i,j);
@@ -79,12 +86,14 @@ double Network::linkQuality(int i, int j)
 
 bool Network::areNeighbors(int i, int j)
 {
-	return adjancency(i,j);
+	return adjacency(i,j);
 }
 
 void Network::getNeighbors(int i, std::vector<int> &result)
 {
-	for(int j=0; j<nodes.size(); j++)
+	result.clear();
+	
+	for(int j=0; j<count(); j++)
 	{
 		if(areNeighbors(i,j)) result.push_back(j); // note: when i==j, they are not neighbors	
 	}
@@ -92,8 +101,11 @@ void Network::getNeighbors(int i, std::vector<int> &result)
 
 void Network::getLinkQuality(int i, std::vector<double> &result)
 {
+	result.clear();
+	
 	std::vector<int> neighbors;
 	getNeighbors(i, neighbors);
+	
 	for(std::vector<int>::iterator it = neighbors.begin(); it != neighbors.end(); it++)
 	{
 		result.push_back(linkQuality(i,*it));
@@ -105,7 +117,7 @@ void Network::sendPacket(const Packet &packet, int sender, int from)
 	std::vector<int> neighbors;
 	getNeighbors(sender, neighbors);
 	
-	for(int i=0; i<neighbors.size(); ++i)
+	for(int i=0; i<int(neighbors.size()); ++i)
 	{
 		int v = neighbors[i];
 		
@@ -120,12 +132,22 @@ void Network::sendPacket(const Packet &packet, int sender, int from)
 	}
 }
 
+void Network::getNextHops(int i, int from, int to, std::vector<int> &result)
+{
+	getNeighbors(i, result);
+	
+	// TODO
+	
+}
+
 void Network::computeAdjacencyMatrix(matrix<bool> &result)
 {
+	result.resize(count(), count());
+	
 	int i,j;
-	for(i=0; i<nodes.size(); i++)
+	for(i=0; i<count(); i++)
 	{
-		for(j=0; j<nodes.size(); j++)
+		for(j=0; j<count(); j++)
 		{
 			if(i==j) result(i,j)=false;   // define: a node is NOT a neighbor to itself
 			else result(i,j)=(nodes[i].distance(nodes[j]) <= threshold);
@@ -135,13 +157,77 @@ void Network::computeAdjacencyMatrix(matrix<bool> &result)
 
 void Network::computeLinkMatrix(matrix<double> &result)
 {
+	result.resize(count(), count());
+	
 	int i,j;
-	for(i=0; i<nodes.size(); i++)
+	for(i=0; i<count(); i++)
 	{
-		for(j=0; j<nodes.size(); j++)
+		for(j=0; j<count(); j++)
 		{
 			if(i==j) result(i,j)=1;   // define: q_ii = 1
 			else result(i,j)=linkQualityFromDistance(nodes[i].distance(nodes[j]));
+		}
+	}
+}
+
+void Network::computeRouting(matrix<int> &nexthops, matrix<int> &distances)
+{
+	std::vector<bool> visited;
+	std::vector<int>  dist;
+	std::vector<int>  prev;
+	
+	// Compute paths for each node as source
+	for(int s=0; s<count(); ++s)
+	{
+		visited.assign(count(), false);		// all nodes unvisited at first
+		dist.assign(count(), count());	// all distances infinite at first
+		prev.assign(count(), -1);			// all previous nodes undefined at first
+	
+		int c = s;	// current node is source node
+		dist[c] = 0;	// source distance is zero
+		
+		while(c >= 0)
+		{
+			// Current node is visited
+			visited[c] = true;
+			
+			// Iterate on neighbors
+			std::vector<int> neighbors;
+			getNeighbors(c, neighbors);
+			for(int i=0; i<int(neighbors.size()); ++i)
+			{
+				int v = neighbors[i];
+				int w = 1;		// neighbors are at distance 1
+				if(dist[c]+w < dist[v])
+				{
+					dist[v] = dist[c]+w;
+					prev[v] = c;
+				}
+			}
+			
+			c = -1;
+			for(int i=0; i<count(); ++i)
+				if(!visited[i] && (c < 0 || dist[i] < dist[c]))
+					c = i;
+		}
+		
+		// Fill matrixes
+		nexthops.resize(count(), count());
+		distances.resize(count(), count());
+		
+		for(int i=0; i<count(); ++i)
+		{
+			// Find next hop
+			int next = i;
+			while(prev[next] != s)
+			{
+				next = prev[next];
+				if(prev[next] == -1)
+					break;
+			}
+			
+			nexthops(s, i)  = next;
+			distances(s, i) = dist[i];
 		}
 	}
 }

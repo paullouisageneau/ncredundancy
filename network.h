@@ -29,7 +29,7 @@ public:
 	void generateMesh(int nx, int ny, double stepx, double stepy);
 	
 	void print(void) const;
-	unsigned int count(void) const;
+	int count(void) const;
 
 	virtual double linkQualityFromDistance(double distance);	// Get q from distance, just a simple function in 1/d^2
 	
@@ -55,7 +55,7 @@ private:
 
 	// Cached matrices
 	matrix<double> links;
-	matrix<bool>   adjancency;
+	matrix<bool>   adjacency;
 	matrix<int>    nexthops;	// next hops for routing (one per source-destination pair)
 	matrix<int>    distances;	// in hops
 	
