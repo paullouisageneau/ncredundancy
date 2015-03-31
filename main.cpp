@@ -46,8 +46,6 @@ int main(int argc, char **argv)
 	}
 	while(network.step());
 	
-	network.print();
-	
 	std::cout << "Received: " << network.received(8) << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
