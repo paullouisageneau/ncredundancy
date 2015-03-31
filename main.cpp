@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	
 	network.update();
 	
-	const unsigned int generation = 10;
+	const unsigned int generation = 10;	// Generation size
 	network.send(0, 8, generation);
 	
 	// Silent mode
@@ -46,7 +46,8 @@ int main(int argc, char **argv)
 	}
 	while(network.step());
 	
-	std::cout << "Received: " << network.received(8) << std::endl;
+	double loss = 1. - double(network.received(8))/generation;
+	std::cout << "Received " << network.received(8) <<", loss=" << loss << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
 	return 0;
