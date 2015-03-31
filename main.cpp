@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 */
 	
 	// Generate grid
-	ncr::Network network;
+	ncr::Network network(seed);
 	network.generateGrid(3, 3, 1., 1.);
 	network.setThreshold(1.5);
 	
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	while(network.step());
 	
 	double loss = 1. - double(network.received(8))/generation;
-	std::cout << "Received " << network.received(8) <<", loss=" << loss << "%" << std::endl;
+	std::cout << "Received " << network.received(8) <<", loss=" << loss*100 << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
 	return 0;

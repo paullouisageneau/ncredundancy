@@ -9,6 +9,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 using namespace boost::numeric::ublas;
 
@@ -18,7 +19,7 @@ namespace ncr
 class Network
 {
 public:
-	Network(void);
+	Network(unsigned long seed);
 	~Network(void);
 	
 	// Set up threshold of distance for neighbors
@@ -31,7 +32,7 @@ public:
 	void print(void) const;
 	int count(void) const;
 
-	virtual double linkQualityFromDistance(double distance);	// Get q from distance, just a simple function in 1/d^2
+	virtual double linkQualityFromDistance(double distance);	// Get q from distance
 	
 	void update(void);						// Update the cached matrices and routing
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
@@ -52,6 +53,8 @@ private:
 	void computeAdjacencyMatrix(matrix<bool> &result);			// Compute adjacency matrix of the graph	
 										//   (use link matrix and threshold)
 	void computeRouting(matrix<int> &nexthops, matrix<int> &distances);	// Run Dijkstra's algorithm (distances returned in hops)
+	
+	boost::mt19937 gen;
 	
 	std::vector<Node> nodes;
 	

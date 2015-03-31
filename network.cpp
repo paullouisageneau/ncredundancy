@@ -1,17 +1,17 @@
 
 #include "network.h"
 
-#include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_on_sphere.hpp>
+#include <boost/random/uniform_01.hpp>
 
 namespace ncr
 {
 
-Network::Network(void) :
+Network::Network(unsigned long seed) :
 	threshold(1.),
 	nextStepNode(0)
 {
-
+	gen.seed(seed);
 }
 
 Network::~Network(void)
@@ -33,8 +33,7 @@ void Network::generateRandom(unsigned long seed, int count, double radius)
 {
 	boost::mt19937 gen;
 	boost::uniform_on_sphere<double> uniform(2);
-	gen.seed(seed);
-
+	
 	nodes.clear();
 	nodes.reserve(count);
 	for(int i=0; i<count; ++i)
@@ -69,9 +68,7 @@ int Network::count(void) const
 
 double Network::linkQualityFromDistance(double distance)
 {
-	// TODO
-	double reference = 1.;
-	return std::min(1., reference/(distance*distance));
+	return 0.5;	// TODO
 }
 
 void Network::update(void)
@@ -163,14 +160,19 @@ void Network::sendPacket(const Packet &packet, int sender)
 	for(int i=0; i<int(neighbors.size()); ++i)
 	{
 		int v = neighbors[i];
+		double q = linkQuality(sender, v);
 		
-		// TODO: loss
+		boost::uniform_01<double> uniform;
+		double p = uniform(gen);
 		
-		if(nodes[v].recv(packet))
+		if(p < q)
 		{
-			std::vector<int> nexthops;
-			getNextHops(v, sender, packet.destination, nexthops);
-			nodes[v].relay(packet, nexthops);
+			if(nodes[v].recv(packet))
+			{
+				std::vector<int> nexthops;
+				getNextHops(v, sender, packet.destination, nexthops);
+				nodes[v].relay(packet, nexthops);
+			}
 		}
 	}
 }
