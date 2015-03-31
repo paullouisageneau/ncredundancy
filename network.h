@@ -34,7 +34,10 @@ public:
 	virtual double linkQualityFromDistance(double distance);	// Get q from distance, just a simple function in 1/d^2
 	
 	void update(void);						// Update the cached matrices and routing
-
+	void send(int source, int destination, unsigned count = 1);	// Send packets from source
+	bool step(void);						// Simulation step
+	unsigned received(int i) const;					// Count received
+	
 	// These functions operate from cached matrices
 	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v
 	void getNeighbors(int i, std::vector<int> &result);		// Get indices of neighbors
@@ -42,17 +45,16 @@ public:
 	bool areNeighbors(int i, int j);				// Are i and j neighbors ?			
 	void getNextHops(int i, int from, int to, std::vector<int> &result);	// Get next hops for relay i (next hops for redundancy model)
 	
-	// Packet transmission simulation
-	void sendPacket(const Packet &packet, int sender, int from = -1);	// Simulate sending at i (from is the previous hop or -1 if i is the source)
-	
 private:
+	void sendPacket(const Packet &packet, int sender);			// Simulate sending
+	
 	void computeLinkMatrix(matrix<double> &result);				// Compute matrix of q_ij link quality between i and j
 	void computeAdjacencyMatrix(matrix<bool> &result);			// Compute adjacency matrix of the graph	
 										//   (use link matrix and threshold)
 	void computeRouting(matrix<int> &nexthops, matrix<int> &distances);	// Run Dijkstra's algorithm (distances returned in hops)
-
+	
 	std::vector<Node> nodes;
-
+	
 	// Cached matrices
 	matrix<double> links;
 	matrix<bool>   adjacency;

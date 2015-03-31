@@ -53,6 +53,11 @@ bool Node::send(Packet &packet)
 	return true;
 }
 
+unsigned Node::received(void) const
+{
+	return rlc.decodedCount();
+}
+
 double Node::distance(const Node &node) const
 {
 	return std::sqrt(distance2(node));

@@ -79,6 +79,44 @@ void Network::update(void)
 	computeRouting(nexthops, distances);
 }
 
+void Network::send(int source, int destination, unsigned count)
+{
+	// TODO: next hops
+	std::vector<int> neighbors;
+	getNeighbors(source, neighbors);
+	
+	for(unsigned c=0; c<count; ++c)
+	{
+		Packet packet(destination, 1024, c);
+		
+		if(nodes[source].recv(packet))
+		{
+			nodes[source].relay(packet, neighbors);
+		}
+	}
+}
+
+bool Network::step(void)
+{
+	bool sent = false;
+	for(int i=0; i<count(); i++)
+	{
+		Packet packet;
+		if(nodes[i].send(packet))
+		{
+			sendPacket(packet, i);
+			sent = true;
+		}
+	}
+	
+	return sent;
+}
+
+unsigned Network::received(int i) const
+{
+	return nodes[i].received();
+}
+
 double Network::linkQuality(int i, int j)
 {
 	return links(i,j);
@@ -112,7 +150,7 @@ void Network::getLinkQuality(int i, std::vector<double> &result)
 	}
 }
 
-void Network::sendPacket(const Packet &packet, int sender, int from)
+void Network::sendPacket(const Packet &packet, int sender)
 {
 	std::vector<int> neighbors;
 	getNeighbors(sender, neighbors);
@@ -180,8 +218,8 @@ void Network::computeRouting(matrix<int> &nexthops, matrix<int> &distances)
 	for(int s=0; s<count(); ++s)
 	{
 		visited.assign(count(), false);		// all nodes unvisited at first
-		dist.assign(count(), count());	// all distances infinite at first
-		prev.assign(count(), -1);			// all previous nodes undefined at first
+		dist.assign(count(), count());		// all distances infinite at first
+		prev.assign(count(), -1);		// all previous nodes undefined at first
 	
 		int c = s;	// current node is source node
 		dist[c] = 0;	// source distance is zero

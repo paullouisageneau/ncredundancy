@@ -26,6 +26,8 @@ public:
 		const std::vector<int> &nexthops);	
 	bool send(Packet &packet);			// Polling function for Network
 
+	unsigned received(void) const;			// Return recieved count
+	
 	int id;
 	double x,y;					// Position
 	std::vector<double>	link;			// *Measured* link quality

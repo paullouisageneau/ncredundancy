@@ -4,11 +4,11 @@
 namespace ncr
 {
 
-Packet::Packet(int _destination, int _size, int _index) :
+Packet::Packet(int _destination, int _size, unsigned _index) :
 	size(_size)
 {
 	if(_index >= 0)
-		addComponent(unsigned(_index), 1);
+		addComponent(_index, 1);
 }
 
 Packet::~Packet(void)

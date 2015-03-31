@@ -13,7 +13,7 @@ namespace ncr
 class Packet : public Rlc::Combination
 {
 public:
-	Packet(int _destination, int _size, int _index = -1);
+	Packet(int _destination = -1, int _size = 0, unsigned _index = -1);
 	~Packet(void);
 
 	int destination;	// Destination node
