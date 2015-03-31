@@ -22,11 +22,11 @@ public:
 	~Network(void);
 	
 	// Set up threshold of distance for neighbors
-	void setThreshold(double thresh);              // set the threshold of distance of neighbors
-	double getThreshold ();                        // get the threshold of distance of neighbors
+	void setThreshold(double thresh);	// set the threshold of distance of neighbors
+	double getThreshold(void);		// get the threshold of distance of neighbors
 
 	void generateRandom(unsigned long seed, int count, double radius);
-	void generateMesh(int nx, int ny, double stepx, double stepy);
+	void generateGrid(int nx, int ny, double stepx, double stepy);
 	
 	void print(void) const;
 	int count(void) const;
@@ -62,7 +62,8 @@ private:
 	matrix<int>    distances;	// in hops
 	
 	double threshold; // Threshold of distance to determine whether two nodes are neighbors
-
+	
+	int nextStepNode;
 };
 
 }

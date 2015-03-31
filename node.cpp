@@ -70,5 +70,11 @@ double Node::distance2(const Node &node) const
 	return dx*dx + dy*dy;
 }
 
+std::ostream &operator<<(std::ostream &s, const Node &node)
+{
+	s << "node " << node.id << " (" << node.x << "," << node.y << "): decoded=" << node.rlc.decodedCount() << ", outgoing=" << node.outgoing.size();
+	return s;
+}
+
 }
 

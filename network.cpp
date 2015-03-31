@@ -7,7 +7,9 @@
 namespace ncr
 {
 
-Network::Network(void)
+Network::Network(void) :
+	threshold(1.),
+	nextStepNode(0)
 {
 
 }
@@ -22,7 +24,7 @@ void Network::setThreshold(double thresh)
 	threshold = thresh;	
 }
 	
-double Network::getThreshold ()
+double Network::getThreshold(void)
 {
 	return threshold;
 }
@@ -42,7 +44,7 @@ void Network::generateRandom(unsigned long seed, int count, double radius)
 	}
 }
 
-void Network::generateMesh(int nx, int ny, double stepx, double stepy)
+void Network::generateGrid(int nx, int ny, double stepx, double stepy)
 {
 	nodes.clear();
 	nodes.reserve(nx*ny);
@@ -56,7 +58,7 @@ void Network::print(void) const
 {
 	for(int i=0; i<count(); ++i)
 	{
-		std::cout << "Node " << i << ": (x,y) = (" << nodes[i].x << "," << nodes[i].y << ")"<< std::endl;
+		std::cout << nodes[i] << std::endl;
 	}
 }
 
@@ -98,18 +100,21 @@ void Network::send(int source, int destination, unsigned count)
 
 bool Network::step(void)
 {
-	bool sent = false;
+	int first = nextStepNode;
 	for(int i=0; i<count(); i++)
 	{
+		int node = (first + i) % count();
+		nextStepNode = (node + 1) % count();
+		
 		Packet packet;
-		if(nodes[i].send(packet))
+		if(nodes[node].send(packet))
 		{
-			sendPacket(packet, i);
-			sent = true;
+			sendPacket(packet, node);
+			return true;
 		}
 	}
 	
-	return sent;
+	return false;
 }
 
 unsigned Network::received(int i) const

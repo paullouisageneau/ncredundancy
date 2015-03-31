@@ -25,15 +25,28 @@ int main(int argc, char **argv)
 	std::cout << "Generation size: " << generation << ", decoded: " << sink.decodedCount() << std::endl;
 */
 	
+	// Generate grid
 	ncr::Network network;
-	network.generateMesh(3, 3, 1., 1.);
-	network.print();
+	network.generateGrid(3, 3, 1., 1.);
+	network.setThreshold(1.5);
 	
 	network.update();
 	
 	const unsigned int generation = 10;
 	network.send(0, 8, generation);
+	
+	// Silent mode
+	// while(network.step());
+	
+	// Verbose mode
+	unsigned step = 0;
+	do {
+		std::cout << "---------- Step " << step++ << " ----------" << std::endl;
+		network.print();
+	}
 	while(network.step());
+	
+	network.print();
 	
 	std::cout << "Received: " << network.received(8) << std::endl;
 	
