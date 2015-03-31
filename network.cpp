@@ -80,9 +80,8 @@ void Network::update(void)
 
 void Network::send(int source, int destination, unsigned count)
 {
-	// TODO: next hops
-	std::vector<int> neighbors;
-	getNeighbors(source, neighbors);
+	std::vector<int> nexthops;
+	getNextHops(source, source, destination, nexthops);
 	
 	for(unsigned c=0; c<count; ++c)
 	{
@@ -90,7 +89,7 @@ void Network::send(int source, int destination, unsigned count)
 		
 		if(nodes[source].recv(packet))
 		{
-			nodes[source].relay(packet, neighbors);
+			nodes[source].relay(packet, nexthops);
 		}
 	}
 }
@@ -181,7 +180,7 @@ void Network::getNextHops(int i, int from, int to, std::vector<int> &result)
 {
 	getNeighbors(i, result);
 	
-	// TODO
+	// TODO: model
 	
 }
 

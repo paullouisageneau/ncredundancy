@@ -35,7 +35,7 @@ void Node::relay(const Packet &packet, const std::vector<int> &nexthops)
 {
 	if(!forward && packet.destination != id)
 	{
-		// TODO: compute redundancy using links and apply it
+		// TODO: model, compute redundancy using links and apply it
 		
 		Packet out(packet.destination, packet.size);	// create
 		rlc.generate(out);				// generate
