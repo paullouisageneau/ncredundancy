@@ -227,7 +227,8 @@ Rlc::Combination &Rlc::Combination::operator/=(uint8_t coeff)
 }
 
 Rlc::Rlc(void) :
-	mDecodedCount(0)
+	mDecodedCount(0),
+	mComponentsCount(0)
 {
 	
 }
@@ -249,6 +250,7 @@ void Rlc::clear(void)
 {
 	mCombinations.clear();
 	mDecodedCount = 0;
+	mComponentsCount = 0;
 }
 
 bool Rlc::generate(Combination &output) const
@@ -274,6 +276,8 @@ bool Rlc::solve(Combination incoming)
 {
 	if(incoming.isNull())
 		return false;
+	
+	mComponentsCount = std::max(mComponentsCount, incoming.lastComponent()+1);
 	
 	// ==== Gauss-Jordan elimination ====
 	
@@ -354,6 +358,11 @@ void Rlc::print(void) const
 unsigned Rlc::decodedCount(void) const
 {
 	return mDecodedCount;
+}
+
+unsigned Rlc::componentsCount(void) const
+{
+	return mComponentsCount;
 }
 
 std::ostream &operator<<(std::ostream &s, const Rlc::Combination &c)

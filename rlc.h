@@ -57,6 +57,7 @@ public:
 	void print(void) const;				// Print current system
 	
 	unsigned decodedCount(void) const;		// Return decoded combinations count
+	unsigned componentsCount(void) const;		// Return number of components in system
 	
 private:
 	// GF(2^8) operations
@@ -73,6 +74,7 @@ private:
 	
 	std::map<unsigned, Combination> mCombinations;	// combinations sorted by pivot component
 	unsigned mDecodedCount;
+	unsigned mComponentsCount;
 };
 
 std::ostream &operator<< (std::ostream &s, const Rlc::Combination &c);

@@ -68,29 +68,40 @@ int Network::count(void) const
 
 double Network::linkQualityFromDistance(double distance)
 {
-	return 0.5;	// TODO
+	return 0.9;	// TODO
 }
 
 void Network::update(void)
 {
 	computeLinkMatrix(links);
 	computeAdjacencyMatrix(adjacency);
-	computeRouting(nexthops, distances);
+	
+	routes.resize(count(), count());
+	distances.resize(count(), count());
+	
+	for(int i=0; i<count(); ++i)
+	{
+		getNeighbors(i, nodes[i].neighbors);
+		getLinkQuality(i, nodes[i].links);
+		nodes[i].adjacency = adjacency;
+		
+		computeRouting(i, nodes[i].routes, nodes[i].distances);
+		
+		// Fill matrixes
+		for(int j=0; j<count(); ++j)
+		{
+			routes(i, j)  = nodes[i].routes[j];
+			distances(i, j) = nodes[i].distances[j];
+		}
+	}
 }
 
 void Network::send(int source, int destination, unsigned count)
 {
-	std::vector<int> nexthops;
-	getNextHops(source, source, destination, nexthops);
-	
 	for(unsigned c=0; c<count; ++c)
 	{
-		Packet packet(destination, 1024, c);
-		
-		if(nodes[source].recv(packet))
-		{
-			nodes[source].relay(packet, nexthops);
-		}
+		Packet packet(destination, 1024, c);	// generate packet
+		nodes[source].recv(packet);		// send it
 	}
 }
 
@@ -134,20 +145,20 @@ void Network::getNeighbors(int i, std::vector<int> &result)
 	
 	for(int j=0; j<count(); j++)
 	{
-		if(areNeighbors(i,j)) result.push_back(j); // note: when i==j, they are not neighbors	
+		if(areNeighbors(i,j)) 
+			result.push_back(j); // note: when i==j, they are not neighbors	
 	}
 }
 
 void Network::getLinkQuality(int i, std::vector<double> &result)
 {
-	result.clear();
+	result.assign(count(), 0.);
 	
 	std::vector<int> neighbors;
 	getNeighbors(i, neighbors);
-	
-	for(std::vector<int>::iterator it = neighbors.begin(); it != neighbors.end(); it++)
+	for(int j=0; j<int(neighbors.size()); ++j)
 	{
-		result.push_back(linkQuality(i,*it));
+		result[neighbors[j]] = linkQuality(i, neighbors[j]);
 	}
 }
 
@@ -166,22 +177,13 @@ void Network::sendPacket(const Packet &packet, int sender)
 		
 		if(p < q)
 		{
-			if(nodes[v].recv(packet))
-			{
-				std::vector<int> nexthops;
-				getNextHops(v, sender, packet.destination, nexthops);
-				nodes[v].relay(packet, nexthops);
-			}
+			// Transmitted
+			nodes[v].recv(packet, sender);
+		}
+		else {
+			// Lost
 		}
 	}
-}
-
-void Network::getNextHops(int i, int from, int to, std::vector<int> &result)
-{
-	getNeighbors(i, result);
-	
-	// TODO: model
-	
 }
 
 void Network::computeAdjacencyMatrix(matrix<bool> &result)
@@ -214,65 +216,57 @@ void Network::computeLinkMatrix(matrix<double> &result)
 	}
 }
 
-void Network::computeRouting(matrix<int> &nexthops, matrix<int> &distances)
+void Network::computeRouting(int s, std::vector<int> &routes, std::vector<int> &distances)
 {
-	std::vector<bool> visited;
-	std::vector<int>  dist;
 	std::vector<int>  prev;
+	std::vector<bool> visited;
 	
-	// Compute paths for each node as source
-	for(int s=0; s<count(); ++s)
+	distances.assign(count(), count());	// all distances infinite at first
+	prev.assign(count(), -1);		// all previous nodes undefined at first
+	visited.assign(count(), false);		// all nodes unvisited at first
+	
+	int c = s;	// current node is source node
+	distances[c] = 0;	// source distancesance is zero
+	
+	while(c >= 0)
 	{
-		visited.assign(count(), false);		// all nodes unvisited at first
-		dist.assign(count(), count());		// all distances infinite at first
-		prev.assign(count(), -1);		// all previous nodes undefined at first
-	
-		int c = s;	// current node is source node
-		dist[c] = 0;	// source distance is zero
+		// Current node is visited
+		visited[c] = true;
 		
-		while(c >= 0)
+		// Iterate on neighbors
+		std::vector<int> neighbors;
+		getNeighbors(c, neighbors);
+		for(int i=0; i<int(neighbors.size()); ++i)
 		{
-			// Current node is visited
-			visited[c] = true;
-			
-			// Iterate on neighbors
-			std::vector<int> neighbors;
-			getNeighbors(c, neighbors);
-			for(int i=0; i<int(neighbors.size()); ++i)
+			int v = neighbors[i];
+			int w = 1;		// neighbors are at distancesance 1
+			if(distances[c]+w < distances[v])
 			{
-				int v = neighbors[i];
-				int w = 1;		// neighbors are at distance 1
-				if(dist[c]+w < dist[v])
-				{
-					dist[v] = dist[c]+w;
-					prev[v] = c;
-				}
+				distances[v] = distances[c]+w;
+				prev[v] = c;
 			}
-			
-			c = -1;
-			for(int i=0; i<count(); ++i)
-				if(!visited[i] && (c < 0 || dist[i] < dist[c]))
-					c = i;
 		}
 		
-		// Fill matrixes
-		nexthops.resize(count(), count());
-		distances.resize(count(), count());
-		
+		c = -1;
 		for(int i=0; i<count(); ++i)
+			if(!visited[i] && (c < 0 || distances[i] < distances[c]))
+				c = i;
+	}
+	
+	// Fill routes
+	routes.resize(count());
+	for(int i=0; i<count(); ++i)
+	{
+		// Find next hop
+		int next = i;
+		while(prev[next] != s)
 		{
-			// Find next hop
-			int next = i;
-			while(prev[next] != s)
-			{
-				next = prev[next];
-				if(prev[next] == -1)
-					break;
-			}
-			
-			nexthops(s, i)  = next;
-			distances(s, i) = dist[i];
+			next = prev[next];
+			if(prev[next] == -1)
+				break;
 		}
+		
+		routes[i]  = next;
 	}
 }
 

@@ -6,6 +6,8 @@
 #include "node.h"
 #include "packet.h"
 
+#include <vector>
+
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -44,7 +46,6 @@ public:
 	void getNeighbors(int i, std::vector<int> &result);		// Get indices of neighbors
 	double linkQuality(int i, int j);				// Link quality between i and j
 	bool areNeighbors(int i, int j);				// Are i and j neighbors ?			
-	void getNextHops(int i, int from, int to, std::vector<int> &result);	// Get next hops for relay i (next hops for redundancy model)
 	
 private:
 	void sendPacket(const Packet &packet, int sender);			// Simulate sending
@@ -52,7 +53,7 @@ private:
 	void computeLinkMatrix(matrix<double> &result);				// Compute matrix of q_ij link quality between i and j
 	void computeAdjacencyMatrix(matrix<bool> &result);			// Compute adjacency matrix of the graph	
 										//   (use link matrix and threshold)
-	void computeRouting(matrix<int> &nexthops, matrix<int> &distances);	// Run Dijkstra's algorithm (distances returned in hops)
+	void computeRouting(int s, std::vector<int> &routes, std::vector<int> &distances);	// Run Dijkstra's algorithm on s (distances returned in hops)
 	
 	boost::mt19937 gen;
 	
@@ -61,10 +62,10 @@ private:
 	// Cached matrices
 	matrix<double> links;
 	matrix<bool>   adjacency;
-	matrix<int>    nexthops;	// next hops for routing (one per source-destination pair)
+	matrix<int>    routes;		// next hops for routing (one per source-destination pair)
 	matrix<int>    distances;	// in hops
 	
-	double threshold; // Threshold of distance to determine whether two nodes are neighbors
+	double threshold; 		// Threshold of distance to determine whether two nodes are neighbors
 	
 	int nextStepNode;
 };

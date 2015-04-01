@@ -8,6 +8,7 @@ Node::Node(int _id, double _x, double _y) :
 	id(_id),
 	x(_x),
 	y(_y),
+	accumulator(0.),
 	forward(false)
 {
 
@@ -18,28 +19,51 @@ Node::~Node(void)
 
 }
 
-bool Node::recv(const Packet &packet)
+void Node::recv(const Packet &packet, int from)
 {
 	if(forward)
 	{
-		outgoing.push(packet);
-		return (packet.destination != id);
+		if(packet.destination != id)
+			outgoing.push(packet);
 	}
 	else {
-		bool isInnovative = rlc.solve(packet);
-		return (isInnovative && packet.destination != id);
-	}
-}
-
-void Node::relay(const Packet &packet, const std::vector<int> &nexthops)
-{
-	if(!forward && packet.destination != id)
-	{
-		// TODO: model, compute redundancy using links and apply it
+		if(!rlc.solve(packet))
+			return;	// Not innovative
 		
-		Packet out(packet.destination, packet.size);	// create
-		rlc.generate(out);				// generate
-		outgoing.push(out);				// push out
+		if(packet.destination == id)
+			return; // We are the destination
+		
+		if(from >= 0 && from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
+			return;	// We are not a next hop
+			
+		std::vector<int> nexthops;
+		getNextHops(packet.destination, nexthops); 
+		
+		double sigma = 0;
+		double p = 1.;
+		for(int i=0; i<int(nexthops.size()); ++i)
+		{
+			sigma+= links[i];
+			p*= 1 - links[i];
+		}
+		
+		const int m = rlc.componentsCount();
+		const double tau = 0.01;
+		
+		const double C = (-std::log(tau)/m) * (p/(1-p));
+		const double rbound = 1/(1-p) * (1 + std::sqrt(2*C));
+		
+		double redundancy = rbound/sigma;
+		
+		accumulator+= redundancy;
+		while(accumulator >= 1.)
+		{
+			accumulator-= 1.;
+		
+			Packet out(packet.destination, packet.size);	// create
+			rlc.generate(out);				// generate
+			outgoing.push(out);				// push out
+		}
 	}
 }
 
@@ -68,6 +92,29 @@ double Node::distance2(const Node &node) const
 	const double dx = x-node.x;
 	const double dy = y-node.y;
 	return dx*dx + dy*dy;
+}
+
+bool Node::pathExists(int i, int j, int distance)
+{
+	if(distance <= 0)
+		return (i == j);
+	
+	matrix<bool> a = adjacency;
+	while(--distance)
+		a = prod(a,adjacency);
+	
+	return a(i,j);
+}
+
+void Node::getNextHops(int j, std::vector<int> &nexthops)
+{
+	nexthops.clear();
+	for(int i=0; i<int(neighbors.size()); ++i)
+	{
+		int v = neighbors[i];
+		if(pathExists(v, j, distances[j]))
+			nexthops.push_back(v);
+	}
 }
 
 std::ostream &operator<<(std::ostream &s, const Node &node)

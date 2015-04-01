@@ -6,8 +6,13 @@
 #include "packet.h"
 #include "rlc.h"
 
+#include <vector>
 #include <queue>
-#include <map>
+
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+
+using namespace boost::numeric::ublas;
 
 namespace ncr
 {
@@ -21,21 +26,30 @@ public:
 	double distance(const Node &node) const;
 	double distance2(const Node &node) const;
 
-	bool recv(const Packet &packet);		// Callback called when a packet is heard, returns true if nexthops should be computed and relay called
-	void relay(const Packet &packet, 		// Callback called with nexthops if recv returns true
-		const std::vector<int> &nexthops);	
+	void recv(const Packet &packet, int from = -1);	// Callback called when a packet is heard
 	bool send(Packet &packet);			// Polling function for Network
 
 	unsigned received(void) const;			// Return recieved count
 	
 	int id;
 	double x,y;					// Position
-	std::vector<double>	link;			// *Measured* link quality
+	
+	std::vector<int>	neighbors;		// neighbors ids
+	matrix<bool>		adjacency;		// Adjacency matrix
+	
+	std::vector<double>	links;			// Link quality (0 if not neighbors)
+	std::vector<int>	routes;
+	std::vector<int>	distances;
 	
 	Rlc			rlc;			// RLC coder/decoder
+	bool			accumulator;		// Redundancy accumulator
 	bool			forward;		// Forward-only mode ?
 	
 	std::queue<Packet>	outgoing;		// Outgoing queue
+	
+private:
+	bool pathExists(int i, int j, int distance);
+	void getNextHops(int j, std::vector<int> &nexthops);
 };
 
 std::ostream &operator<< (std::ostream &s, const Node &node);
