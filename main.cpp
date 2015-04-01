@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 	
 	network.print();
 	
-	std::cout << "Transmit: " << 100.*double(network.totalSent)/(network.count()*generation) << "%" << std::endl;
+	std::cout << "Economy:  " << 100.*(1.-double(network.totalSent)/(network.count()*generation)) << "%" << std::endl;
 	std::cout << "Received: " << 100.*double(network.received(destination))/generation << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
