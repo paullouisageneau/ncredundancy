@@ -47,6 +47,11 @@ public:
 	double linkQuality(int i, int j);				// Link quality between i and j
 	bool areNeighbors(int i, int j);				// Are i and j neighbors ?			
 	
+	// Stats
+	unsigned int totalSent;
+	unsigned int totalReceived;
+	unsigned int totalLost;
+	
 private:
 	void sendPacket(const Packet &packet, int sender);			// Simulate sending
 	

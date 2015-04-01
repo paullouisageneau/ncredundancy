@@ -8,6 +8,9 @@ namespace ncr
 {
 
 Network::Network(unsigned long seed) :
+	totalSent(0),
+	totalReceived(0),
+	totalLost(0),
 	threshold(1.),
 	nextStepNode(0)
 {
@@ -158,12 +161,15 @@ void Network::getLinkQuality(int i, std::vector<double> &result)
 	getNeighbors(i, neighbors);
 	for(int j=0; j<int(neighbors.size()); ++j)
 	{
-		result[neighbors[j]] = linkQuality(i, neighbors[j]);
+		int v = neighbors[j];
+		result[v] = linkQuality(i, v);
 	}
 }
 
 void Network::sendPacket(const Packet &packet, int sender)
 {
+	++totalSent;
+	
 	std::vector<int> neighbors;
 	getNeighbors(sender, neighbors);
 	
@@ -179,9 +185,11 @@ void Network::sendPacket(const Packet &packet, int sender)
 		{
 			// Transmitted
 			nodes[v].recv(packet, sender);
+			++totalReceived;
 		}
 		else {
 			// Lost
+			++totalLost;
 		}
 	}
 }

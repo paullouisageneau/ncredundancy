@@ -42,14 +42,14 @@ public:
 	std::vector<int>	distances;
 	
 	Rlc			rlc;			// RLC coder/decoder
-	bool			accumulator;		// Redundancy accumulator
+	double			accumulator;		// Redundancy accumulator
 	bool			forward;		// Forward-only mode ?
 	
 	std::queue<Packet>	outgoing;		// Outgoing queue
 	
 private:
 	bool pathExists(int i, int j, int distance);
-	void getNextHops(int j, std::vector<int> &nexthops);
+	void getNextHops(int i, int j, std::vector<int> &nexthops);
 };
 
 std::ostream &operator<< (std::ostream &s, const Node &node);

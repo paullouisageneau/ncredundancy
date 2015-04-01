@@ -21,6 +21,9 @@ Node::~Node(void)
 
 void Node::recv(const Packet &packet, int from)
 {
+	if(from < 0)
+		from = id;
+	
 	if(forward)
 	{
 		if(packet.destination != id)
@@ -33,18 +36,30 @@ void Node::recv(const Packet &packet, int from)
 		if(packet.destination == id)
 			return; // We are the destination
 		
-		if(from >= 0 && from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
+		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
 			return;	// We are not a next hop
-			
-		std::vector<int> nexthops;
-		getNextHops(packet.destination, nexthops); 
 		
-		double sigma = 0;
+		
+		double sigma = 1.;
+		if(from != id)
+		{
+			sigma = 0.;
+			std::vector<int> nexthops;
+			getNextHops(from, packet.destination, nexthops);
+			for(int i=0; i<int(nexthops.size()); ++i)
+			{
+				int n = nexthops[i];
+				sigma+= links[n];
+			}
+		}
+		
 		double p = 1.;
+		std::vector<int> nexthops;
+		getNextHops(from, packet.destination, nexthops); 
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
-			sigma+= links[i];
-			p*= 1 - links[i];
+			int n = nexthops[i];
+			p*= 1. - links[n];
 		}
 		
 		const int m = rlc.componentsCount();
@@ -106,14 +121,16 @@ bool Node::pathExists(int i, int j, int distance)
 	return a(i,j);
 }
 
-void Node::getNextHops(int j, std::vector<int> &nexthops)
+void Node::getNextHops(int i, int j, std::vector<int> &nexthops)
 {
 	nexthops.clear();
-	for(int i=0; i<int(neighbors.size()); ++i)
+	for(int v=0; v<int(adjacency.size2()); ++v)
 	{
-		int v = neighbors[i];
-		if(pathExists(v, j, distances[j]))
-			nexthops.push_back(v);
+		if(adjacency(i, v))
+		{
+			if(pathExists(v, j, distances[i] + distances[j]))
+				nexthops.push_back(v);
+		}
 	}
 }
 

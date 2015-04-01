@@ -27,27 +27,34 @@ int main(int argc, char **argv)
 	
 	// Generate grid
 	ncr::Network network(seed);
-	network.generateGrid(3, 3, 1., 1.);
+	network.generateGrid(10, 3, 1., 1.);
 	network.setThreshold(1.5);
+	
+	const unsigned int generation = 16;	// Generation size
+	const int source = 1;
+	const int destination = network.count() - 2;
 	
 	network.update();
 	
-	const unsigned int generation = 10;	// Generation size
-	network.send(0, 8, generation);
-	
-	// Silent mode
-	// while(network.step());
+	network.send(source, destination, generation);
 	
 	// Verbose mode
+	/*
 	unsigned step = 0;
 	do {
 		std::cout << "---------- Step " << step++ << " ----------" << std::endl;
 		network.print();
 	}
 	while(network.step());
+	*/
 	
-	double loss = 1. - double(network.received(8))/generation;
-	std::cout << "Received " << network.received(8) <<", loss=" << loss*100 << "%" << std::endl;
+	// Silent mode
+	while(network.step());
+	
+	network.print();
+	
+	std::cout << "Transmit: " << 100.*double(network.totalSent)/(network.count()*generation) << "%" << std::endl;
+	std::cout << "Received: " << 100.*double(network.received(destination))/generation << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
 	return 0;
