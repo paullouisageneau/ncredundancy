@@ -244,6 +244,8 @@ void Rlc::fill(unsigned count)
 	
 	for(unsigned i = 0; i<count; ++i)
 		mCombinations[i].addComponent(i, 1);
+	
+	mComponentsCount = count;
 }
 
 void Rlc::clear(void)
@@ -353,6 +355,11 @@ void Rlc::print(void) const
 	{
 		std::cout << it->second << std::endl;
 	}
+}
+
+unsigned Rlc::seenCount(void) const
+{
+	return mCombinations.size();
 }
 
 unsigned Rlc::decodedCount(void) const

@@ -26,6 +26,7 @@ public:
 	double distance(const Node &node) const;
 	double distance2(const Node &node) const;
 
+	void generate(int destination, unsigned count = 1);
 	void recv(const Packet &packet, int from = -1);	// Callback called when a packet is heard
 	bool send(Packet &packet);			// Polling function for Network
 
@@ -48,8 +49,11 @@ public:
 	std::queue<Packet>	outgoing;		// Outgoing queue
 	
 private:
-	bool pathExists(int i, int j, int distance);
-	void getNextHops(int i, int j, std::vector<int> &nexthops);
+	static const int PacketSize = 1024;
+	
+	bool pathExists(int i, int j, int distance) const;
+	void getNextHops(int i, int j, std::vector<int> &nexthops) const;
+	void rlcRelay(int from, int to, unsigned count = 1);
 };
 
 std::ostream &operator<< (std::ostream &s, const Node &node);

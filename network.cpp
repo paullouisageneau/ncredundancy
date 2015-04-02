@@ -101,11 +101,7 @@ void Network::update(void)
 
 void Network::send(int source, int destination, unsigned count)
 {
-	for(unsigned c=0; c<count; ++c)
-	{
-		Packet packet(destination, 1024, c);	// generate packet
-		nodes[source].recv(packet);		// send it
-	}
+	nodes[source].generate(destination, count);
 }
 
 bool Network::step(void)

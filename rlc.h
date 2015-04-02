@@ -56,6 +56,7 @@ public:
 	bool solve(Combination incoming);		// Add combination and try to solve, return true if innovative
 	void print(void) const;				// Print current system
 	
+	unsigned seenCount(void) const;			// Return seen combinations count (degree)
 	unsigned decodedCount(void) const;		// Return decoded combinations count
 	unsigned componentsCount(void) const;		// Return number of components in system
 	

@@ -19,6 +19,34 @@ Node::~Node(void)
 
 }
 
+double Node::distance(const Node &node) const
+{
+	return std::sqrt(distance2(node));
+}
+
+double Node::distance2(const Node &node) const
+{
+	const double dx = x-node.x;
+	const double dy = y-node.y;
+	return dx*dx + dy*dy;
+}
+
+void Node::generate(int destination, unsigned count)
+{
+	if(forward)
+	{
+		for(unsigned c=0; c<count; ++c)
+		{
+			Packet packet(destination, PacketSize, c);
+			outgoing.push(packet);
+		}
+	}
+	else {
+		rlc.fill(rlc.componentsCount() + count);
+		rlcRelay(id, destination, count);
+	}
+}
+
 void Node::recv(const Packet &packet, int from)
 {
 	if(from < 0)
@@ -39,46 +67,7 @@ void Node::recv(const Packet &packet, int from)
 		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
 			return;	// We are not a next hop
 		
-		
-		double sigma = 1.;
-		if(from != id)
-		{
-			sigma = 0.;
-			std::vector<int> nexthops;
-			getNextHops(from, packet.destination, nexthops);
-			for(int i=0; i<int(nexthops.size()); ++i)
-			{
-				int n = nexthops[i];
-				sigma+= links[n];
-			}
-		}
-		
-		double p = 1.;
-		std::vector<int> nexthops;
-		getNextHops(from, packet.destination, nexthops); 
-		for(int i=0; i<int(nexthops.size()); ++i)
-		{
-			int n = nexthops[i];
-			p*= 1. - links[n];
-		}
-		
-		const int m = rlc.componentsCount();
-		const double tau = 0.01;
-		
-		const double C = (-std::log(tau)/m) * (p/(1-p));
-		const double rbound = 1/(1-p) * (1 + std::sqrt(2*C));
-		
-		double redundancy = rbound/sigma;
-		
-		accumulator+= redundancy;
-		while(accumulator >= 1.)
-		{
-			accumulator-= 1.;
-		
-			Packet out(packet.destination, packet.size);	// create
-			rlc.generate(out);				// generate
-			outgoing.push(out);				// push out
-		}
+		rlcRelay(from, 1);
 	}
 }
 
@@ -97,19 +86,7 @@ unsigned Node::received(void) const
 	return rlc.decodedCount();
 }
 
-double Node::distance(const Node &node) const
-{
-	return std::sqrt(distance2(node));
-}
-
-double Node::distance2(const Node &node) const
-{
-	const double dx = x-node.x;
-	const double dy = y-node.y;
-	return dx*dx + dy*dy;
-}
-
-bool Node::pathExists(int i, int j, int distance)
+bool Node::pathExists(int i, int j, int distance) const
 {
 	if(distance <= 0)
 		return (i == j);
@@ -121,7 +98,7 @@ bool Node::pathExists(int i, int j, int distance)
 	return a(i,j);
 }
 
-void Node::getNextHops(int i, int j, std::vector<int> &nexthops)
+void Node::getNextHops(int i, int j, std::vector<int> &nexthops) const
 {
 	nexthops.clear();
 	for(int v=0; v<int(adjacency.size2()); ++v)
@@ -134,9 +111,57 @@ void Node::getNextHops(int i, int j, std::vector<int> &nexthops)
 	}
 }
 
+void Node::rlcRelay(int from, int to, unsigned count)
+{
+	const int m = rlc.componentsCount();
+	const double tau = 0.01;
+	
+	if(m == 0)
+		return;
+	
+	if(from < 0)
+		from = id;
+	
+	double sigma = 1.;
+	if(from != id)
+	{
+		sigma = 0.;
+		std::vector<int> nexthops;
+		getNextHops(from, to, nexthops);
+		for(int i=0; i<int(nexthops.size()); ++i)
+		{
+			int n = nexthops[i];
+			sigma+= links[n];
+		}
+	}
+	
+	double p = 1.;
+	std::vector<int> nexthops;
+	getNextHops(from, to, nexthops); 
+	for(int i=0; i<int(nexthops.size()); ++i)
+	{
+		int n = nexthops[i];
+		p*= 1. - links[n];
+	}
+	
+	const double C = (-std::log(tau)/m) * (p/(1-p));
+	const double rbound = 1/(1-p) * (1 + std::sqrt(2*C));
+	const double redundancy = rbound/sigma;
+	
+	accumulator+= redundancy*count;
+	while(accumulator > 0.)
+	{
+		accumulator-= 1.;
+		
+		Packet out(to, PacketSize);	// create
+		rlc.generate(out);		// generate
+		outgoing.push(out);		// push out
+	}
+}
+
 std::ostream &operator<<(std::ostream &s, const Node &node)
 {
-	s << "node " << node.id << " (" << node.x << "," << node.y << "): decoded=" << node.rlc.decodedCount() << ", outgoing=" << node.outgoing.size();
+	s << "node " << node.id << " (" << node.x << "," << node.y << "): seen=" << node.rlc.seenCount() << ", outgoing=" << node.outgoing.size();
 	return s;
 }
 
