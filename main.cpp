@@ -39,15 +39,17 @@ int main(int argc, char **argv)
 	network.send(source, destination, generation);
 	
 	// Verbose mode
+	/*
 	unsigned step = 0;
 	do {
 		std::cout << "---------- Step " << step++ << " ----------" << std::endl;
 		network.print();
 	}
 	while(network.step());
-	
+	*/
+
 	// Silent mode
-	//while(network.step());
+	while(network.step());
 	
 	network.print();
 	

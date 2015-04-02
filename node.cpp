@@ -67,7 +67,7 @@ void Node::recv(const Packet &packet, int from)
 		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
 			return;	// We are not a next hop
 		
-		rlcRelay(from, 1);
+		rlcRelay(from, packet.destination, 1);
 	}
 }
 
