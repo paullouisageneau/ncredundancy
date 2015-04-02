@@ -42,8 +42,16 @@ void Node::generate(int destination, unsigned count)
 		}
 	}
 	else {
-		rlc.fill(rlc.componentsCount() + count);
-		rlcRelay(id, destination, count);
+		// Batch
+		//rlc.fill(rlc.componentsCount() + count);
+		//rlcRelay(id, destination, count);
+
+		// Pipeline
+		for(unsigned c=0; c<count; ++c)
+		{
+			Packet packet(destination, PacketSize, rlc.componentsCount() + c);
+			recv(packet, id);
+		}
 	}
 }
 
@@ -161,7 +169,7 @@ void Node::rlcRelay(int from, int to, unsigned count)
 
 std::ostream &operator<<(std::ostream &s, const Node &node)
 {
-	s << "node " << node.id << " (" << node.x << "," << node.y << "): seen=" << node.rlc.seenCount() << ", outgoing=" << node.outgoing.size();
+	s << "node " << node.id << " (" << node.x << "," << node.y << "): seen=" << node.rlc.seenCount() << ", decoded=" << node.rlc.decodedCount() << ", outgoing=" << node.outgoing.size();
 	return s;
 }
 

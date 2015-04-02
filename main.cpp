@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 	// Silent mode
 	while(network.step());
 	
-	network.print();
+	//network.print();
 	
 	std::cout << "Economy:  " << 100.*(1.-double(network.totalSent)/(network.count()*generation)) << "%" << std::endl;
 	std::cout << "Received: " << 100.*double(network.received(destination))/generation << "%" << std::endl;
