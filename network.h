@@ -39,6 +39,7 @@ public:
 	void update(void);						// Update the cached matrices and routing
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
 	bool step(void);						// Simulation step
+	void reset(void);						// Reset simulation
 	unsigned received(int i) const;					// Count received
 	
 	// These functions operate from cached matrices

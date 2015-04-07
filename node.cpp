@@ -94,6 +94,15 @@ unsigned Node::received(void) const
 	return rlc.decodedCount();
 }
 
+void Node::reset(void)
+{
+	rlc.clear();
+	accumulator = 0.;
+	
+	while(!outgoing.empty())
+		outgoing.pop();
+}
+
 bool Node::pathExists(int i, int j, int distance) const
 {
 	if(distance <= 0)

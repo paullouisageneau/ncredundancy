@@ -123,6 +123,14 @@ bool Network::step(void)
 	return false;
 }
 
+void Network::reset(void)
+{
+	for(int i=0; i<count(); i++)
+		nodes[i].reset();
+	
+	nextStepNode = 0;
+}
+
 unsigned Network::received(int i) const
 {
 	return nodes[i].received();
