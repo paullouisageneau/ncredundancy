@@ -237,8 +237,8 @@ void Network::computeRouting(int s, std::vector<int> &routes, std::vector<int> &
 	prev.assign(count(), -1);		// all previous nodes undefined at first
 	visited.assign(count(), false);		// all nodes unvisited at first
 	
-	int c = s;	// current node is source node
-	distances[c] = 0;	// source distancesance is zero
+	int c = s;		// current node is source node
+	distances[c] = 0;	// source distance is zero
 	
 	while(c >= 0)
 	{
@@ -251,7 +251,7 @@ void Network::computeRouting(int s, std::vector<int> &routes, std::vector<int> &
 		for(int i=0; i<int(neighbors.size()); ++i)
 		{
 			int v = neighbors[i];
-			int w = 1;		// neighbors are at distancesance 1
+			int w = 1;		// neighbors are at distance 1
 			if(distances[c]+w < distances[v])
 			{
 				distances[v] = distances[c]+w;
@@ -267,18 +267,21 @@ void Network::computeRouting(int s, std::vector<int> &routes, std::vector<int> &
 	
 	// Fill routes
 	routes.resize(count());
+	routes[s] = s;
 	for(int i=0; i<count(); ++i)
-	{
+	{	
+		if(i == s) continue;
+		
 		// Find next hop
 		int next = i;
 		while(prev[next] != s)
 		{
 			next = prev[next];
-			if(prev[next] == -1)
+			if(next == -1 || prev[next] == -1)
 				break;
 		}
-		
-		routes[i]  = next;
+	
+		routes[i] = next;
 	}
 }
 
