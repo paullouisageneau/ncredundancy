@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 		network.reset();
 	}
 	
-	std::cout << "Economy:  " << 100.*(1.-double(network.totalSent)/(network.count()*generation*iterations)) << "%" << std::endl;
+	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/(network.count()*generation*iterations)) << "%" << std::endl;
 	std::cout << "Received: " << 100.*double(total)/(generation*iterations) << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
