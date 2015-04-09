@@ -1,6 +1,7 @@
 
 #include "main.h"
 #include "network.h"
+#include "node.h"
 #include "rlc.h"
 
 int main(int argc, char **argv)
@@ -30,7 +31,9 @@ int main(int argc, char **argv)
 	network.generateGrid(10, 3, 1., 1.);
 	network.setThreshold(1.5);
 	
-	const unsigned int generation = 16;	// Generation size
+	ncr::Node::Tau = 0.01;
+	
+	const unsigned int generation = 16;		// Generation size
 	const int source = 1;
 	const int destination = network.count() - 2;
 	const int iterations = 10;

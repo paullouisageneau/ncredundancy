@@ -20,6 +20,9 @@ namespace ncr
 class Node
 {
 public:
+	static int PacketSize;
+	static double Tau;
+	
 	Node(int _id, double _x = 0, double _y = 0);
 	~Node(void);
 
@@ -49,8 +52,6 @@ public:
 	std::queue<Packet>	outgoing;		// Outgoing queue
 	
 private:
-	static const int PacketSize = 1024;
-	
 	bool pathExists(int i, int j, int distance) const;
 	void getNextHops(int i, int j, std::vector<int> &nexthops) const;
 	void rlcRelay(int from, int to, unsigned count = 1);
