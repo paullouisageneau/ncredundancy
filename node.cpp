@@ -5,6 +5,7 @@ namespace ncr
 {
 
 int Node::PacketSize = 1024;
+int Node::GenerationSize = 16;
 double Node::Tau = 0.01;
 	
 Node::Node(int _id, double _x, double _y) :
@@ -133,11 +134,6 @@ void Node::getNextHops(int i, int j, std::vector<int> &nexthops) const
 
 void Node::rlcRelay(int from, int to, unsigned count)
 {
-	const int m = rlc.componentsCount();
-	
-	if(m == 0)
-		return;
-	
 	if(from < 0)
 		from = id;
 	
@@ -163,6 +159,7 @@ void Node::rlcRelay(int from, int to, unsigned count)
 		p*= 1. - links[n];
 	}
 	
+	const int m = GenerationSize;
 	const double C = (-std::log(Tau)/m) * (p/(1-p));
 	const double A = (1 + std::sqrt(2*C));
 	const double rbound = 1/(1-p) * (1 + A*A)/2;

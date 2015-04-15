@@ -21,6 +21,7 @@ class Node
 {
 public:
 	static int PacketSize;
+	static int GenerationSize;
 	static double Tau;
 	
 	Node(int _id, double _x = 0, double _y = 0);

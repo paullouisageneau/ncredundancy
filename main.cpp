@@ -32,8 +32,8 @@ int main(int argc, char **argv)
 	network.setThreshold(1.5);
 	
 	ncr::Node::Tau = 0.01;
+	ncr::Node::GenerationSize = 16;
 	
-	const unsigned int generation = 16;		// Generation size
 	const int source = 1;
 	const int destination = network.count() - 2;
 	const int iterations = 10;
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	{
 		network.update();
 	
-		network.send(source, destination, generation);
+		network.send(source, destination, ncr::Node::GenerationSize);
 	
 		// Verbose mode
 		/*
@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 		network.reset();
 	}
 	
-	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/(network.count()*generation*iterations)) << "%" << std::endl;
-	std::cout << "Received: " << 100.*double(total)/(generation*iterations) << "%" << std::endl;
+	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/(network.count()*ncr::Node::GenerationSize*iterations)) << "%" << std::endl;
+	std::cout << "Received: " << 100.*double(total)/(ncr::Node::GenerationSize*iterations) << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
 	return 0;
