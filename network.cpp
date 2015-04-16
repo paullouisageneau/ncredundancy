@@ -136,6 +136,11 @@ unsigned Network::received(int i) const
 	return nodes[i].received();
 }
 
+unsigned Network::seen(int i) const
+{
+	return nodes[i].seen();
+}
+
 double Network::linkQuality(int i, int j)
 {
 	return links(i,j);

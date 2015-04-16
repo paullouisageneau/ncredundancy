@@ -46,16 +46,18 @@ void Node::generate(int destination, unsigned count)
 		}
 	}
 	else {
+		unsigned offset = rlc.componentsCount();
+		
 		// Batch
-		//rlc.fill(rlc.componentsCount() + count);
-		//rlcRelay(id, destination, count);
+		rlc.fill(offset + count);
+		rlcRelay(id, destination, count);
 
 		// Pipeline
-		for(unsigned c=0; c<count; ++c)
+		/*for(unsigned c=0; c<count; ++c)
 		{
-			Packet packet(destination, PacketSize, rlc.componentsCount() + c);
+			Packet packet(destination, PacketSize, offset + c);
 			recv(packet, id);
-		}
+		}*/
 	}
 }
 
@@ -98,6 +100,11 @@ unsigned Node::received(void) const
 	return rlc.decodedCount();
 }
 
+unsigned Node::seen(void) const
+{
+	return rlc.seenCount();
+}
+
 void Node::reset(void)
 {
 	rlc.clear();
@@ -122,12 +129,21 @@ bool Node::pathExists(int i, int j, int distance) const
 void Node::getNextHops(int i, int j, std::vector<int> &nexthops) const
 {
 	nexthops.clear();
+	
+	if(i == j) 
+		return;
+	
 	for(int v=0; v<int(adjacency.size2()); ++v)
 	{
+		if(v == i)
+			continue;
+		
 		if(adjacency(i, v))
 		{
-			if(pathExists(v, j, distances[i] + distances[j]))
+			if(pathExists(v, j, distances[i] + distances[j] - 1))
+			{
 				nexthops.push_back(v);
+			}
 		}
 	}
 }
@@ -146,13 +162,13 @@ void Node::rlcRelay(int from, int to, unsigned count)
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
 			int n = nexthops[i];
-			sigma+= links[n];
+			sigma+= links[n];	// TODO: works here but should be links in previous node !
 		}
 	}
 	
 	double p = 1.;
 	std::vector<int> nexthops;
-	getNextHops(from, to, nexthops); 
+	getNextHops(id, to, nexthops);
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
@@ -160,13 +176,15 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	}
 	
 	const int m = GenerationSize;
-	const double C = (-std::log(Tau)/m) * (p/(1-p));
-	const double A = (1 + std::sqrt(2*C));
-	const double rbound = 1/(1-p) * (1 + A*A)/2;
+	const double C = (-std::log(Tau)/m) * (p/(1.-p));
+	const double A = (1. + std::sqrt(2.*C));
+	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
 	const double redundancy = rbound/sigma;
 	
+	std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
+	
 	accumulator+= redundancy*count;
-	while(accumulator > 0.)
+	while(accumulator >= 1.)
 	{
 		accumulator-= 1.;
 		

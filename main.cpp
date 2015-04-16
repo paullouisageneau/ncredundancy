@@ -31,8 +31,8 @@ int main(int argc, char **argv)
 	network.generateGrid(10, 3, 1., 1.);
 	network.setThreshold(1.5);
 	
-	ncr::Node::Tau = 0.01;
 	ncr::Node::GenerationSize = 16;
+	ncr::Node::Tau = 0.01;
 	
 	const int source = 1;
 	const int destination = network.count() - 2;
@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 		network.reset();
 	}
 	
-	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/(network.count()*ncr::Node::GenerationSize*iterations)) << "%" << std::endl;
+	/*double r = 1./0.9;
+	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/(network.count()*ncr::Node::GenerationSize*iterations*r)) << "%" << std::endl;*/
 	std::cout << "Received: " << 100.*double(total)/(ncr::Node::GenerationSize*iterations) << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup

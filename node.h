@@ -34,6 +34,7 @@ public:
 	void recv(const Packet &packet, int from = -1);	// Callback called when a packet is heard
 	bool send(Packet &packet);			// Polling function for Network
 	unsigned received(void) const;			// Return recieved count
+	unsigned seen(void) const;			// Return seen count
 	void reset(void);				// Reset RLC state
 	
 	int id;

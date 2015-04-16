@@ -41,6 +41,7 @@ public:
 	bool step(void);						// Simulation step
 	void reset(void);						// Reset simulation
 	unsigned received(int i) const;					// Count received
+	unsigned seen(int i) const;					// Count seen
 	
 	// These functions operate from cached matrices
 	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v
