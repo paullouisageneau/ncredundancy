@@ -3,8 +3,8 @@ INC_DIR=/usr/local/Cellar/boost/1.56.0/include
 CC=gcc
 CXX=g++
 RM=rm -f
-CPPFLAGS=-g -O2 -c -Wall $(addprefix -I,$(INC_DIR))
-LDFLAGS=-g -O2
+CPPFLAGS=-O3 -c -Wall $(addprefix -I,$(INC_DIR))
+LDFLAGS=-O3
 LDLIBS=
 
 

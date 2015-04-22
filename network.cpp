@@ -141,6 +141,16 @@ unsigned Network::seen(int i) const
 	return nodes[i].seen();
 }
 
+void Network::setForwarding(int i, bool enabled)
+{
+	nodes[i].forward = enabled;
+}
+
+bool Network::forwarding(int i) const
+{
+	return nodes[i].forward;
+}
+
 double Network::linkQuality(int i, int j)
 {
 	return links(i,j);

@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <queue>
+#include <set>
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -51,6 +52,7 @@ public:
 	double			accumulator;		// Redundancy accumulator
 	bool			forward;		// Forward-only mode ?
 	
+	std::set<uint64_t>	forwarded;
 	std::queue<Packet>	outgoing;		// Outgoing queue
 	
 private:

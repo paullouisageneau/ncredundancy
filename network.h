@@ -34,7 +34,8 @@ public:
 	void print(void) const;
 	int count(void) const;
 
-	virtual double linkQualityFromDistance(double distance);	// Get q from distance
+	static double linkQualityFromDistance(double distance);	// Get q from distance
+								// TODO: should be virtual and non-static
 	
 	void update(void);						// Update the cached matrices and routing
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
@@ -42,6 +43,9 @@ public:
 	void reset(void);						// Reset simulation
 	unsigned received(int i) const;					// Count received
 	unsigned seen(int i) const;					// Count seen
+	
+	void setForwarding(int i, bool enabled);			// Enable forward-only mode for i
+	bool forwarding(int i) const;					// Is forward-only mode enabled for i ?
 	
 	// These functions operate from cached matrices
 	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v

@@ -2,6 +2,7 @@
 #include "rlc.h"
 
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/crc.hpp>
 
 namespace ncr
 {
@@ -155,6 +156,23 @@ bool Rlc::Combination::isNull(void) const
 void Rlc::Combination::clear(void)
 {
 	mComponents.clear();
+}
+
+uint64_t Rlc::Combination::uid(void) const
+{
+	boost::crc_optimal<64, 0x04C11DB7, 0, 0, false, false> crc;
+	
+	for(	std::map<unsigned, uint8_t>::const_iterator it = mComponents.begin();
+		it != mComponents.end();
+		++it)
+	{
+		uint32_t index(it->first);
+		uint8_t  coeff(it->second);
+		crc.process_bytes (&index, 4);
+		crc.process_bytes (&coeff, 1);
+	}
+	
+	return crc.checksum();
 }
 
 Rlc::Combination &Rlc::Combination::operator=(const Combination &combination)

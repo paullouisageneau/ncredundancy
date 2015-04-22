@@ -34,10 +34,12 @@ public:
 		bool isNull(void) const;
 		void clear(void);
 		
+		uint64_t uid(void) const;
+		
 		Combination &operator=(const Combination &combination);
 		Combination operator+(const Combination &combination) const;
 		Combination operator*(uint8_t coeff) const;
-		Combination operator/(uint8_t coeff) const;	
+		Combination operator/(uint8_t coeff) const;
 		Combination &operator+=(const Combination &combination);
 		Combination &operator*=(uint8_t coeff);
 		Combination &operator/=(uint8_t coeff);

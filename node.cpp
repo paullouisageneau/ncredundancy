@@ -1,5 +1,6 @@
 
 #include "node.h"
+#include "network.h" // TODO: remove
 
 namespace ncr
 {
@@ -68,8 +69,12 @@ void Node::recv(const Packet &packet, int from)
 	
 	if(forward)
 	{
-		if(packet.destination != id)
+		uint64_t uid = packet.uid();
+		if(packet.destination != id && forwarded.find(uid) == forwarded.end())
+		{
+			forwarded.insert(uid);
 			outgoing.push(packet);
+		}
 	}
 	else {
 		if(!rlc.solve(packet))
@@ -112,6 +117,8 @@ void Node::reset(void)
 	
 	while(!outgoing.empty())
 		outgoing.pop();
+	
+	forwarded.clear();
 }
 
 bool Node::pathExists(int i, int j, int distance) const
@@ -153,6 +160,8 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	if(from < 0)
 		from = id;
 	
+	const double q = Network::linkQualityFromDistance(1.);	
+	
 	double sigma = 1.;
 	if(from != id)
 	{
@@ -161,9 +170,10 @@ void Node::rlcRelay(int from, int to, unsigned count)
 		getNextHops(from, to, nexthops);
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
-			int n = nexthops[i];
-			sigma+= links[n];	// TODO: works here but should be links in previous node !
+			sigma+= q;	// TODO: should be links in previous node !
 		}
+		
+		sigma/=q;
 	}
 	
 	double p = 1.;
@@ -181,10 +191,10 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
 	const double redundancy = rbound/sigma;
 	
-	std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
+	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
 	
 	accumulator+= redundancy*count;
-	while(accumulator >= 1.)
+	while(accumulator > 0.)
 	{
 		accumulator-= 1.;
 		
