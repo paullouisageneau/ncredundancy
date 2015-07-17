@@ -30,11 +30,11 @@ int main(int argc, char **argv)
 	
 	// Generate grid
 	ncr::Network network(seed);
-	network.generateGrid(3, 1, 1., 1.);
+	network.generateGrid(10, 1, 1., 1.);
 	network.setThreshold(1.5);
 	
 	ncr::Node::GenerationSize = 16;
-	ncr::Node::Tau = 0.1;
+	ncr::Node::Tau = 0.01;
 	
 	const int source = 0;
 	const int destination = network.count() - 1;
@@ -43,24 +43,24 @@ int main(int argc, char **argv)
 	
 	boost::random::mt19937 gen(seed);
 	boost::uniform_01<double> uniform;
+
+	// Set some nodes to forward only mode
+	for(int n=0; n<network.count(); ++n)
+	{
+		if(n == destination)
+		{
+			network.setForwarding(n, false);
+		}
+		else {
+			//network.setForwarding(n, (uniform(gen) < forwardingProbability));
+		}
+	}
 	
 	unsigned total = 0;
 	for(int i=0; i<iterations; ++i)
 	{
-		// Set some nodes to forward only mode
-		for(int n=0; n<network.count(); ++n)
-		{
-			if(n == destination)
-			{
-				network.setForwarding(n, false);
-			}
-			else {
-				network.setForwarding(n, (uniform(gen) < forwardingProbability));
-			}
-		}
-		
 		network.update();
-	
+	 
 		network.send(source, destination, ncr::Node::GenerationSize);
 	
 		// Verbose mode
@@ -87,9 +87,6 @@ int main(int argc, char **argv)
 	std::cout << "Redundancy:  " << double(network.totalSent)/((network.count()-1)*ncr::Node::GenerationSize*iterations) << std::endl;
 
 	std::cout << "Received: " << 100.*double(total)/(ncr::Node::GenerationSize*iterations) << "%" << std::endl;
-	
-	double r = 1./0.9;
-	std::cout << "Optimized:  " << 100.*(1.-double(network.totalSent)/((network.count()-1)*ncr::Node::GenerationSize*iterations*r)) << "%" << std::endl;
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
 	return 0;

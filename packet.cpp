@@ -4,7 +4,8 @@
 namespace ncr
 {
 
-Packet::Packet(int _destination, int _size, unsigned _index) :
+Packet::Packet(int _source, int _destination, int _size, unsigned _index) :
+	source(_source),
 	destination(_destination),
 	size(_size)
 {

@@ -42,7 +42,7 @@ void Node::generate(int destination, unsigned count)
 	{
 		for(unsigned c=0; c<count; ++c)
 		{
-			Packet packet(destination, PacketSize, c);
+			Packet packet(id, destination, PacketSize, c);
 			outgoing.push(packet);
 		}
 	}
@@ -51,14 +51,14 @@ void Node::generate(int destination, unsigned count)
 		
 		// Batch
 		rlc.fill(offset + count);
-		rlcRelay(id, destination, count);
+		rlcRelay(id, id, destination, count);
 
 		// Pipeline
-		/*for(unsigned c=0; c<count; ++c)
-		{
-			Packet packet(destination, PacketSize, offset + c);
-			recv(packet, id);
-		}*/
+		//for(unsigned c=0; c<count; ++c)
+		//{
+		//	Packet packet(id, destination, PacketSize, offset + c);
+		//	recv(packet, id);
+		//}
 	}
 }
 
@@ -86,7 +86,10 @@ void Node::recv(const Packet &packet, int from)
 		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
 			return;	// We are not a next hop
 		
-		rlcRelay(from, packet.destination, 1);
+		//rlcRelay(from, packet.source, packet.destination, 1);
+		
+		if(rlc.size() == unsigned(GenerationSize))
+			rlcRelay(from, packet.source, packet.destination, GenerationSize);
 	}
 }
 
@@ -155,7 +158,7 @@ void Node::getNextHops(int i, int j, std::vector<int> &nexthops) const
 	}
 }
 
-void Node::rlcRelay(int from, int to, unsigned count)
+void Node::rlcRelay(int from, int source, int destination, unsigned count)
 {
 	if(from < 0)
 		from = id;
@@ -167,7 +170,7 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	{
 		sigma = 0.;
 		std::vector<int> nexthops;
-		getNextHops(from, to, nexthops);
+		getNextHops(from, destination, nexthops);
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
 			sigma+= q;	// TODO: should be links in previous node !
@@ -178,7 +181,7 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	
 	double p = 1.;
 	std::vector<int> nexthops;
-	getNextHops(id, to, nexthops);
+	getNextHops(id, destination, nexthops);
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
@@ -186,21 +189,24 @@ void Node::rlcRelay(int from, int to, unsigned count)
 	}
 	
 	const int m = GenerationSize;
-	const double C = (-std::log(Tau)/m) * (p/(1.-p));
+	const int d = distances[source] + distances[destination];
+	const double tau = 1. - std::pow(1.-Tau, 1./d);
+	const double C = (-std::log(tau)/m) * (p/(1.-p));
 	const double A = (1. + std::sqrt(2.*C));
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
 	const double redundancy = rbound/sigma;
 	
-	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
+	std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
 	
 	accumulator+= redundancy*count;
+	
 	while(accumulator > 0.)
 	{
 		accumulator-= 1.;
 		
-		Packet out(to, PacketSize);	// create
-		rlc.generate(out);		// generate
-		outgoing.push(out);		// push out
+		Packet out(source, destination, PacketSize);	// create
+		rlc.generate(out);				// generate
+		outgoing.push(out);				// push out
 	}
 }
 

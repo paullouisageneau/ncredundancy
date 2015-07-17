@@ -51,6 +51,7 @@ public:
 	Rlc(void);
 	~Rlc(void);
 	
+	unsigned size(void) { return seenCount(); }
 	void fill(unsigned count);	// Fill with count components (source)
 	void clear(void);		// Clear system
 	

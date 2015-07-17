@@ -58,7 +58,7 @@ public:
 private:
 	bool pathExists(int i, int j, int distance) const;
 	void getNextHops(int i, int j, std::vector<int> &nexthops) const;
-	void rlcRelay(int from, int to, unsigned count = 1);
+	void rlcRelay(int from, int source, int destination, unsigned count = 1);
 };
 
 std::ostream &operator<< (std::ostream &s, const Node &node);
