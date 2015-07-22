@@ -210,6 +210,9 @@ void Network::sendPacket(const Packet &packet, int sender)
 			// Lost
 			++totalLost;
 		}
+		
+		if(packet.last)
+			nodes[v].flush(packet.source, packet.destination);
 	}
 }
 

@@ -52,7 +52,8 @@ void Node::generate(int destination, unsigned count)
 		// Batch
 		rlc.fill(offset + count);
 		rlcRelay(id, id, destination, count);
-
+		flush(id, destination);
+		
 		// Pipeline
 		//for(unsigned c=0; c<count; ++c)
 		//{
@@ -86,10 +87,20 @@ void Node::recv(const Packet &packet, int from)
 		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
 			return;	// We are not a next hop
 		
-		//rlcRelay(from, packet.source, packet.destination, 1);
+		rlcRelay(from, packet.source, packet.destination, 1);
+		//flush(packet.source, packet.destination);	// on-the-fly recoding
+	}
+}
+
+void Node::flush(int source, int destination)
+{
+	while(accumulator >= 1.)
+	{
+		accumulator-= 1.;
 		
-		if(rlc.size() == unsigned(GenerationSize))
-			rlcRelay(from, packet.source, packet.destination, GenerationSize);
+		Packet out(source, destination, PacketSize);	// create
+		rlc.generate(out);				// generate
+		outgoing.push(out);				// push out
 	}
 }
 
@@ -100,6 +111,8 @@ bool Node::send(Packet &packet)
 	
 	packet = outgoing.front();
 	outgoing.pop();
+	if(outgoing.empty())
+		packet.last = true;
 	return true;
 }
 
@@ -116,7 +129,7 @@ unsigned Node::seen(void) const
 void Node::reset(void)
 {
 	rlc.clear();
-	accumulator = 0.;
+	//accumulator = 0.;
 	
 	while(!outgoing.empty())
 		outgoing.pop();
@@ -182,6 +195,9 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	double p = 1.;
 	std::vector<int> nexthops;
 	getNextHops(id, destination, nexthops);
+	if(nexthops.empty())
+		return;
+	
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
@@ -196,18 +212,9 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
 	const double redundancy = rbound/sigma;
 	
-	std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
+	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
 	
 	accumulator+= redundancy*count;
-	
-	while(accumulator > 0.)
-	{
-		accumulator-= 1.;
-		
-		Packet out(source, destination, PacketSize);	// create
-		rlc.generate(out);				// generate
-		outgoing.push(out);				// push out
-	}
 }
 
 std::ostream &operator<<(std::ostream &s, const Node &node)

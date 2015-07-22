@@ -5,6 +5,15 @@
 #include "rlc.h"
 
 #include <boost/random/uniform_01.hpp>
+#include <boost/random/uniform_smallint.hpp>
+
+void run(ncr::Network &network, 
+	 unsigned long seed,
+	 int forwarding,
+	 int iterations,
+	 double &lost,
+	 double &redundancy
+	);
 
 int main(int argc, char **argv)
 {	
@@ -14,7 +23,7 @@ int main(int argc, char **argv)
 
 /*
 	// ========== RLC test ==========
-	const unsigned int generation = 100;		// Generation size
+	const unsigned int generation = 64;		// Generation size
 	
 	ncr::Rlc source, sink;
 	source.fill(generation);			// Prepare source
@@ -27,42 +36,103 @@ int main(int argc, char **argv)
 	
 	std::cout << "Generation size: " << generation << ", decoded: " << sink.decodedCount() << std::endl;
 */
+
+/*
+	boost::random::mt19937 gen(seed);
+	boost::uniform_01<double> uniform;
+	for(int k=50; k<=70; ++k)
+	{
+		const int iterations = 10000;
+		const unsigned int generation = 32;		// Generation size
+		const double loss = 0.1;
+		const double redundancy = 1. + double(k)/100.;
+		
+		double accumulator = 0.;
+		unsigned total = 0;
+		for(int i=0; i<iterations; ++i)
+		{
+			ncr::Rlc source, sink;
+			source.fill(generation);			// Prepare source
+			accumulator+= generation*redundancy;
+			while(accumulator >= 1.)	// Transmit combinations from source to sink
+			{
+				accumulator-= 1.;
+				
+				ncr::Rlc::Combination c;
+				source.generate(c);
+				if(uniform(gen) >= loss) 
+					sink.solve(c);
+			}
+			
+			total+= sink.decodedCount();
+		}
+		
+		double lost = 1. - double(total)/(generation*iterations);
+		std::cout << redundancy << '\t' << lost << std::endl;
+	}
+*/
+
+	for(int k=0; k<=20; ++k)
+	{
+		// Generate grid
+		ncr::Network network(seed);
+		network.generateGrid(4, 4, 1., 1.);
+		network.setThreshold(1.5);
+		
+		ncr::Node::GenerationSize = 16;
+		ncr::Node::Tau = 0.01;
+		
+		double lost;
+		double redundancy;
+		run(network, seed, k, 1000, lost, redundancy);
+		
+		std::cout << double(k)/network.count() << '\t' << lost << '\t' << redundancy << std::endl;
+	}
 	
-	// Generate grid
-	ncr::Network network(seed);
-	network.generateGrid(10, 1, 1., 1.);
-	network.setThreshold(1.5);
-	
-	ncr::Node::GenerationSize = 16;
-	ncr::Node::Tau = 0.01;
+	ncr::Rlc::Cleanup();				// Global RLC cleanup
+	return 0;
+}
+
+void run(ncr::Network &network,
+	 unsigned long seed,
+	 int forwarding,
+	 int iterations,
+	 double &lost,
+	 double &redundancy
+	)
+{
+	boost::random::mt19937 gen(seed);
 	
 	const int source = 0;
 	const int destination = network.count() - 1;
-	const int iterations = 1000;
-	const double forwardingProbability = 0.0;
 	
-	boost::random::mt19937 gen(seed);
-	boost::uniform_01<double> uniform;
-
-	// Set some nodes to forward only mode
-	for(int n=0; n<network.count(); ++n)
-	{
-		if(n == destination)
-		{
-			network.setForwarding(n, false);
-		}
-		else {
-			//network.setForwarding(n, (uniform(gen) < forwardingProbability));
-		}
-	}
+	network.update();	// compute matrices
 	
 	unsigned total = 0;
 	for(int i=0; i<iterations; ++i)
 	{
-		network.update();
-	 
+		// Set some nodes to forward only mode
+		std::set<int> temp;
+		for(int n=0; n<network.count(); ++n)
+		{
+			network.setForwarding(n, false);
+			temp.insert(n);
+		}
+		
+		for(int n=0; n<forwarding && !temp.empty(); ++n)
+		{
+			std::set<int>::iterator it = temp.begin();
+			boost::uniform_smallint<int> uniform(0, temp.size()-1);
+			int u = uniform(gen);
+			while(u--) ++it;
+			network.setForwarding(*it, true);
+			temp.erase(it);
+		}
+		
+		network.setForwarding(destination, false);
+		network.reset();
 		network.send(source, destination, ncr::Node::GenerationSize);
-	
+		
 		// Verbose mode
 		/*
 		unsigned step = 0;
@@ -79,16 +149,9 @@ int main(int argc, char **argv)
 		//network.print();
 		
 		total+= network.received(destination);
-		network.reset();
-		
-		//std::cout << "Process: " << 100*double(i+1)/double(iterations) << "%" << std::endl; 
 	}
 	
-	std::cout << "Redundancy:  " << double(network.totalSent)/((network.count()-1)*ncr::Node::GenerationSize*iterations) << std::endl;
-
-	std::cout << "Received: " << 100.*double(total)/(ncr::Node::GenerationSize*iterations) << "%" << std::endl;
+	lost = 1. - double(total)/(ncr::Node::GenerationSize*iterations);
 	
-	ncr::Rlc::Cleanup();				// Global RLC cleanup
-	return 0;
+	redundancy = double(network.totalSent)/((network.count()-1)*ncr::Node::GenerationSize*iterations);
 }
-

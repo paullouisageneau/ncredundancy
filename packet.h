@@ -19,6 +19,7 @@ public:
 	int source;		// Source node
 	int destination;	// Destination node
 	int size;		// Data size
+	bool last;		// Last packet flag
 };
 
 }
