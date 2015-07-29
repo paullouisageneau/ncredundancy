@@ -40,10 +40,10 @@ int main(int argc, char **argv)
 /*
 	boost::random::mt19937 gen(seed);
 	boost::uniform_01<double> uniform;
-	for(int k=50; k<=70; ++k)
+	for(int k=0; k<=50; ++k)
 	{
 		const int iterations = 10000;
-		const unsigned int generation = 32;		// Generation size
+		const unsigned int generation = 16;		// Generation size
 		const double loss = 0.1;
 		const double redundancy = 1. + double(k)/100.;
 		
@@ -72,21 +72,27 @@ int main(int argc, char **argv)
 	}
 */
 
-	for(int k=0; k<=20; ++k)
+	for(int k=0; k<=90; ++k)
 	{
 		// Generate grid
 		ncr::Network network(seed);
-		network.generateGrid(4, 4, 1., 1.);
+		network.generateGridoid(3, 3, 1., 1.);
 		network.setThreshold(1.5);
 		
-		ncr::Node::GenerationSize = 16;
+		double p = 0.01*k;
+		network.setJamming(3, p);
+		network.setJamming(4, p);
+		network.setJamming(5, p);
+		network.setJamming(6, p);
+		
+		ncr::Node::GenerationSize = 32;
 		ncr::Node::Tau = 0.01;
 		
 		double lost;
 		double redundancy;
-		run(network, seed, k, 1000, lost, redundancy);
+		run(network, seed, 0, 100, lost, redundancy);
 		
-		std::cout << double(k)/network.count() << '\t' << lost << '\t' << redundancy << std::endl;
+		std::cout << p << '\t' << lost << '\t' << redundancy << std::endl;
 	}
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup

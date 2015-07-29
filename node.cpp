@@ -14,7 +14,8 @@ Node::Node(int _id, double _x, double _y) :
 	x(_x),
 	y(_y),
 	accumulator(0.),
-	forward(false)
+	forward(false),
+	jamming(0.)
 {
 
 }
@@ -176,8 +177,6 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	if(from < 0)
 		from = id;
 	
-	const double q = Network::linkQualityFromDistance(1.);	
-	
 	double sigma = 1.;
 	if(from != id)
 	{
@@ -186,10 +185,9 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 		getNextHops(from, destination, nexthops);
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
-			sigma+= q;	// TODO: should be links in previous node !
+			int n = nexthops[i];
+			sigma+= links(from,n);
 		}
-		
-		sigma/=q;
 	}
 	
 	double p = 1.;
@@ -201,8 +199,10 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
-		p*= 1. - links[n];
+		p*= 1. - links(id,n);
 	}
+
+	p+=0.004*2;	// should be ~ 0.004
 	
 	const int m = GenerationSize;
 	const int d = distances[source] + distances[destination];
@@ -213,7 +213,10 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	const double redundancy = rbound/sigma;
 	
 	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
-	
+
+	// Test only
+	//double redundancy = 1 + Node::Tau;
+
 	accumulator+= redundancy*count;
 }
 

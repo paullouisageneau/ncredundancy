@@ -56,6 +56,25 @@ void Network::generateGrid(int nx, int ny, double stepx, double stepy)
 			nodes.push_back(Node(i++, x*stepx, y*stepy));
 }
 
+//
+//     o-o-o
+//    /| | |\_
+// (0)-o-o-o-(nx*ny+1)
+//    \| | |/
+//     o-o-o
+//
+void Network::generateGridoid(int nx, int ny, double stepx, double stepy)
+{
+	nodes.clear();
+	nodes.reserve(nx*ny+2);
+	int i=0;
+	nodes.push_back(Node(i++, -stepx, stepy*(ny-1)*0.5));
+	for(int x=0; x<nx; ++x)
+		for(int y=0; y<ny; ++y)
+			nodes.push_back(Node(i++, stepx*x, stepy*y));
+	nodes.push_back(Node(i++, stepx*nx, stepy*(ny-1)*0.5));
+}
+
 void Network::print(void) const
 {
 	for(int i=0; i<count(); ++i)
@@ -71,7 +90,7 @@ int Network::count(void) const
 
 double Network::linkQualityFromDistance(double distance)
 {
-	return 0.9;	// TODO
+	return 1.;	// TODO
 }
 
 void Network::update(void)
@@ -85,7 +104,7 @@ void Network::update(void)
 	for(int i=0; i<count(); ++i)
 	{
 		getNeighbors(i, nodes[i].neighbors);
-		getLinkQuality(i, nodes[i].links);
+		nodes[i].links = links;
 		nodes[i].adjacency = adjacency;
 		
 		computeRouting(i, nodes[i].routes, nodes[i].distances);
@@ -149,6 +168,16 @@ void Network::setForwarding(int i, bool enabled)
 bool Network::forwarding(int i) const
 {
 	return nodes[i].forward;
+}
+
+void Network::setJamming(int i, double jamming)
+{
+	nodes[i].jamming = jamming;
+}
+
+bool Network::jamming(int i) const
+{
+	return nodes[i].jamming;
 }
 
 double Network::linkQuality(int i, int j)
@@ -241,7 +270,7 @@ void Network::computeLinkMatrix(matrix<double> &result)
 		for(j=0; j<count(); j++)
 		{
 			if(i==j) result(i,j)=1;   // define: q_ii = 1
-			else result(i,j)=linkQualityFromDistance(nodes[i].distance(nodes[j]));
+			else result(i,j) = linkQualityFromDistance(nodes[i].distance(nodes[j]))*(1.-nodes[j].jamming);
 		}
 	}
 }

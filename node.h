@@ -42,16 +42,17 @@ public:
 	int id;
 	double x,y;					// Position
 	
-	std::vector<int>	neighbors;		// neighbors ids
+	std::vector<int>	neighbors;		// Neighbors ids
+	matrix<double> 		links;			// Link quality (0 if not neighbors)
 	matrix<bool>		adjacency;		// Adjacency matrix
 	
-	std::vector<double>	links;			// Link quality (0 if not neighbors)
 	std::vector<int>	routes;
 	std::vector<int>	distances;
 	
 	Rlc			rlc;			// RLC coder/decoder
 	double			accumulator;		// Redundancy accumulator
 	bool			forward;		// Forward-only mode ?
+	double			jamming;
 	
 	std::set<uint64_t>	forwarded;
 	std::queue<Packet>	outgoing;		// Outgoing queue

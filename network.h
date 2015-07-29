@@ -30,12 +30,12 @@ public:
 
 	void generateRandom(unsigned long seed, int count, double radius);
 	void generateGrid(int nx, int ny, double stepx, double stepy);
+	void generateGridoid(int nx, int ny, double stepx, double stepy);
 	
 	void print(void) const;
 	int count(void) const;
 
-	static double linkQualityFromDistance(double distance);	// Get q from distance
-								// TODO: should be virtual and non-static
+	virtual double linkQualityFromDistance(double distance);	// Get q from distance
 	
 	void update(void);						// Update the cached matrices and routing
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
@@ -46,6 +46,9 @@ public:
 	
 	void setForwarding(int i, bool enabled);			// Enable forward-only mode for i
 	bool forwarding(int i) const;					// Is forward-only mode enabled for i ?
+	
+	void setJamming(int i, double jamming);				// Add artificial loss at reception on i
+	bool jamming(int i) const;
 	
 	// These functions operate from cached matrices
 	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v

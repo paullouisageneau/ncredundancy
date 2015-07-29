@@ -7,9 +7,6 @@ CPPFLAGS=-O3 -c -Wall $(addprefix -I,$(INC_DIR))
 LDFLAGS=-O3
 LDLIBS=
 
-
-CCFLAGS=
-
 SRCS=$(shell printf "%s " *.cpp)
 OBJS=$(subst .cpp,.o,$(SRCS))
 
