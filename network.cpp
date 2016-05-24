@@ -100,13 +100,13 @@ void Network::update(void)
 	
 	routes.resize(count(), count());
 	distances.resize(count(), count());
-	
+
 	for(int i=0; i<count(); ++i)
 	{
 		getNeighbors(i, nodes[i].neighbors);
 		nodes[i].links = links;
 		nodes[i].adjacency = adjacency;
-		
+
 		computeRouting(i, nodes[i].routes, nodes[i].distances);
 		
 		// Fill matrixes
@@ -114,6 +114,16 @@ void Network::update(void)
 		{
 			routes(i, j)  = nodes[i].routes[j];
 			distances(i, j) = nodes[i].distances[j];
+		}
+	}
+
+	// Fill alphas
+	for(int i=0; i<count(); ++i)
+	{
+		nodes[i].alphas.resize(count());
+		for(int j=0; j<count(); ++j)
+		{
+			nodes[i].alphas[j] = nodes[j].alpha;
 		}
 	}
 }

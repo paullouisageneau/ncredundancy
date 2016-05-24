@@ -13,6 +13,7 @@ Node::Node(int _id, double _x, double _y) :
 	id(_id),
 	x(_x),
 	y(_y),
+	alpha(1.),
 	accumulator(0.),
 	forward(false),
 	jamming(0.)
@@ -178,18 +179,26 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 		from = id;
 	
 	double sigma = 1.;
+	double nalpha = 1.;
 	if(from != id)
 	{
 		sigma = 0.;
+		nalpha = 0.;
+
 		std::vector<int> nexthops;
 		getNextHops(from, destination, nexthops);
+
+		double salpha = 1.;
 		for(int i=0; i<int(nexthops.size()); ++i)
 		{
 			int n = nexthops[i];
 			sigma+= links(from,n);
+			salpha+= alphas[n];
 		}
+
+		nalpha = nexthops.size()*alpha/salpha;
 	}
-	
+
 	double p = 1.;
 	std::vector<int> nexthops;
 	getNextHops(id, destination, nexthops);
@@ -210,7 +219,7 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	const double C = (-std::log(tau)/m) * (p/(1.-p));
 	const double A = (1. + std::sqrt(2.*C));
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
-	const double redundancy = rbound/sigma;
+	const double redundancy = rbound*nalpha/sigma;
 	
 	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
 

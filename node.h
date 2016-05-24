@@ -33,19 +33,22 @@ public:
 
 	void generate(int destination, unsigned count = 1);
 	void recv(const Packet &packet, int from = -1);		// Callback called when a packet is heard
-	void flush(int source, int destination);	// Callback called to flush a flow
+	void flush(int source, int destination);		// Callback called to flush a flow
 	bool send(Packet &packet);				// Polling function for Network
+
 	unsigned received(void) const;				// Return recieved count
 	unsigned seen(void) const;				// Return seen count
 	void reset(void);					// Reset RLC state
 	
 	int id;
 	double x,y;					// Position
+	double alpha;					// Coding factor
 	
 	std::vector<int>	neighbors;		// Neighbors ids
 	matrix<double> 		links;			// Link quality (0 if not neighbors)
 	matrix<bool>		adjacency;		// Adjacency matrix
-	
+	std::vector<double>	alphas;
+
 	std::vector<int>	routes;
 	std::vector<int>	distances;
 	
