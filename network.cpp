@@ -190,6 +190,16 @@ bool Network::jamming(int i) const
 	return nodes[i].jamming;
 }
 
+void Network::setAlpha(int i, double alpha)
+{
+	nodes[i].alpha = alpha;
+}
+
+double Network::alpha(int i)
+{
+	return nodes[i].alpha;
+}
+
 double Network::linkQuality(int i, int j)
 {
 	return links(i,j);

@@ -80,11 +80,13 @@ int main(int argc, char **argv)
 		network.setThreshold(1.5);
 		
 		double p = 0.01*k;
-		network.setJamming(3, p);
 		network.setJamming(4, p);
 		network.setJamming(5, p);
 		network.setJamming(6, p);
-		
+		network.setJamming(7, p);
+		network.setJamming(8, p);		
+		network.setJamming(9, p);
+
 		ncr::Node::GenerationSize = 32;
 		ncr::Node::Tau = 0.01;
 		
@@ -117,7 +119,6 @@ void run(ncr::Network &network,
 	unsigned total = 0;
 	for(int i=0; i<iterations; ++i)
 	{
-		// Set some nodes to forward only mode
 		std::set<int> temp;
 		for(int n=0; n<network.count(); ++n)
 		{
@@ -131,7 +132,8 @@ void run(ncr::Network &network,
 			boost::uniform_smallint<int> uniform(0, temp.size()-1);
 			int u = uniform(gen);
 			while(u--) ++it;
-			network.setForwarding(*it, true);
+			//network.setForwarding(*it, true);
+			network.setAlpha(*it, 0.5);
 			temp.erase(it);
 		}
 		

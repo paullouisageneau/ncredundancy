@@ -50,6 +50,9 @@ public:
 	void setJamming(int i, double jamming);				// Add artificial loss at reception on i
 	bool jamming(int i) const;
 	
+	void setAlpha(int i, double alpha);
+	double alpha(int i);
+
 	// These functions operate from cached matrices
 	void getLinkQuality(int i, std::vector<double> &result);	// Compute link quality with each neighbor q_v
 	void getNeighbors(int i, std::vector<int> &result);		// Get indices of neighbors
