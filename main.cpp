@@ -122,7 +122,8 @@ void run(ncr::Network &network,
 		std::set<int> temp;
 		for(int n=0; n<network.count(); ++n)
 		{
-			network.setForwarding(n, false);
+			//network.setForwarding(n, false);
+			network.setAlpha(n, 1.);
 			temp.insert(n);
 		}
 		
