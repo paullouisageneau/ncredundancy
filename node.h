@@ -36,7 +36,7 @@ public:
 	void flush(int source, int destination);		// Callback called to flush a flow
 	bool send(Packet &packet);				// Polling function for Network
 
-	unsigned received(void) const;				// Return recieved count
+	unsigned received(void) const;				// Return recieved count (i.e. decoded)
 	unsigned seen(void) const;				// Return seen count
 	void reset(void);					// Reset RLC state
 	
@@ -59,6 +59,7 @@ public:
 	
 	std::set<uint64_t>	forwarded;
 	std::queue<Packet>	outgoing;		// Outgoing queue
+	unsigned		emitted;
 	
 private:
 	bool pathExists(int i, int j, int distance) const;

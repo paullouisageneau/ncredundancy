@@ -170,6 +170,11 @@ unsigned Network::seen(int i) const
 	return nodes[i].seen();
 }
 
+unsigned Network::emitted(int i) const
+{
+	return nodes[i].emitted;
+}
+
 void Network::setForwarding(int i, bool enabled)
 {
 	nodes[i].forward = enabled;

@@ -16,7 +16,8 @@ Node::Node(int _id, double _x, double _y) :
 	alpha(1.),
 	accumulator(0.),
 	forward(false),
-	jamming(0.)
+	jamming(0.),
+	emitted(0)
 {
 
 }
@@ -77,6 +78,7 @@ void Node::recv(const Packet &packet, int from)
 		{
 			forwarded.insert(uid);
 			outgoing.push(packet);
+			++emitted;
 		}
 	}
 	else {
@@ -103,6 +105,7 @@ void Node::flush(int source, int destination)
 		Packet out(source, destination, PacketSize);	// create
 		rlc.generate(out);				// generate
 		outgoing.push(out);				// push out
+		++emitted;
 	}
 }
 
@@ -137,6 +140,7 @@ void Node::reset(void)
 		outgoing.pop();
 	
 	forwarded.clear();
+	emitted = 0;
 }
 
 bool Node::pathExists(int i, int j, int distance) const
@@ -203,7 +207,7 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 		p*= 1. - links(id,n)*alphas[n];
 	}
 
-	p+=0.004*2;	// should be ~ 0.004
+	p+= 0.004*2;	// should be ~ 0.004
 	
 	const int m = GenerationSize;
 	const int d = distances[source] + distances[destination];
@@ -213,7 +217,7 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
 	const double redundancy = rbound*alpha/sigma;
 	
-	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\tredundancy=" << redundancy << std::endl;
+	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\talpha=" << alpha << "\tredundancy=" << redundancy << std::endl;
 
 	// Test only
 	//double redundancy = 1 + Node::Tau;

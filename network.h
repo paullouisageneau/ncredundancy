@@ -41,8 +41,9 @@ public:
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
 	bool step(void);						// Simulation step
 	void reset(void);						// Reset simulation
-	unsigned received(int i) const;					// Count received
+	unsigned received(int i) const;					// Count received (i.e. decoded)
 	unsigned seen(int i) const;					// Count seen
+	unsigned emitted(int i) const;					// Count emitted
 	
 	void setForwarding(int i, bool enabled);			// Enable forward-only mode for i
 	bool forwarding(int i) const;					// Is forward-only mode enabled for i ?

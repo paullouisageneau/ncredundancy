@@ -72,29 +72,36 @@ int main(int argc, char **argv)
 	}
 */
 
+	const int x = 3;
+	const int y = 2;
+
 	for(int k=0; k<=90; ++k)
 	{
 		// Generate grid
 		ncr::Network network(seed);
-		network.generateGridoid(3, 3, 1., 1.);
+		network.generateGridoid(x, y, 1., 1.);
 		network.setThreshold(1.5);
 		
 		double p = 0.01*k;
-		network.setJamming(4, p);
-		network.setJamming(5, p);
-		network.setJamming(6, p);
-		network.setJamming(7, p);
-		network.setJamming(8, p);		
-		network.setJamming(9, p);
-
+		
+		for(int i=1; i<x; ++i)
+		{
+			for(int j=0; j<y; ++j)
+			{
+				int n = 1+i*y+j;
+				network.setJamming(n, p);
+			}
+			network.setAlpha(1+i*y, 0.1);
+		}
+		
 		ncr::Node::GenerationSize = 32;
 		ncr::Node::Tau = 0.01;
 		
 		double lost;
 		double redundancy;
-		run(network, seed, 0, 100, lost, redundancy);
+		run(network, seed, 0, 1000, lost, redundancy);
 		
-		std::cout << p << '\t' << lost << '\t' << redundancy << std::endl;
+		std::cout << p << '\t' << lost << '\t' << network.emitted(3) << '\t' << network.emitted(4) << '\t' << redundancy << std::endl;
 	}
 	
 	ncr::Rlc::Cleanup();				// Global RLC cleanup
@@ -122,8 +129,7 @@ void run(ncr::Network &network,
 		std::set<int> temp;
 		for(int n=0; n<network.count(); ++n)
 		{
-			//network.setForwarding(n, false);
-			network.setAlpha(n, 1.);
+			network.setForwarding(n, false);
 			temp.insert(n);
 		}
 		
@@ -133,8 +139,7 @@ void run(ncr::Network &network,
 			boost::uniform_smallint<int> uniform(0, temp.size()-1);
 			int u = uniform(gen);
 			while(u--) ++it;
-			//network.setForwarding(*it, true);
-			network.setAlpha(*it, 0.5);
+			network.setForwarding(*it, true);
 			temp.erase(it);
 		}
 		
