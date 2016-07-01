@@ -201,13 +201,20 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	if(nexthops.empty())
 		return;
 	
+	double maxalpha = 0.;
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
-		p*= 1. - links(id,n)*alphas[n];
+		maxalpha = std::max(maxalpha, alphas[n]);
 	}
 
-	p+= 0.004*2;	// should be ~ 0.004
+	for(int i=0; i<int(nexthops.size()); ++i)
+	{
+		int n = nexthops[i];
+		p*= pow(1. - links(id,n), alphas[n]/maxalpha);
+	}
+
+	p+= 0.004;	// should be ~ 0.004
 	
 	const int m = GenerationSize;
 	const int d = distances[source] + distances[destination];

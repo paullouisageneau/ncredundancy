@@ -74,16 +74,16 @@ int main(int argc, char **argv)
 
 	const int x = 3;
 	const int y = 3;
-
-	for(int k=0; k<=100; ++k)
+	
+	for(int k=0; k<=20; ++k)
 	{
 		// Generate grid
 		ncr::Network network(seed);
 		network.generateGridoid(x, y, 1., 1.);
 		network.setThreshold(1.5);
 		
-		double p = 0.1; //0.01*k;
-		double alpha = 1.-0.01*k;
+		double p = 0.1; //0.05*k;
+		double alpha = 1.-0.05*k;
 		
 		for(int i=1; i<x; ++i)
 		{
@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 				int n = 1+i*y+j;
 				network.setJamming(n, p);
 			}
+			
 			network.setAlpha(1+i*y, alpha);
 		}
 		
