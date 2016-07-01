@@ -73,16 +73,17 @@ int main(int argc, char **argv)
 */
 
 	const int x = 3;
-	const int y = 2;
+	const int y = 3;
 
-	for(int k=0; k<=90; ++k)
+	for(int k=0; k<=100; ++k)
 	{
 		// Generate grid
 		ncr::Network network(seed);
 		network.generateGridoid(x, y, 1., 1.);
 		network.setThreshold(1.5);
 		
-		double p = 0.01*k;
+		double p = 0.1; //0.01*k;
+		double alpha = 1.-0.01*k;
 		
 		for(int i=1; i<x; ++i)
 		{
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 				int n = 1+i*y+j;
 				network.setJamming(n, p);
 			}
-			network.setAlpha(1+i*y, 0.1);
+			network.setAlpha(1+i*y, alpha);
 		}
 		
 		ncr::Node::GenerationSize = 32;
@@ -101,10 +102,15 @@ int main(int argc, char **argv)
 		double redundancy;
 		run(network, seed, 0, 1000, lost, redundancy);
 		
-		std::cout << p << '\t' << lost << '\t' << network.emitted(3) << '\t' << network.emitted(4) << '\t' << redundancy << std::endl;
+		std::cout << p << '\t' << alpha << '\t' << lost  << '\t' << redundancy;
+		
+		for(int j=0; j<y; ++j)
+			std::cout << '\t' << network.emitted(1+y+j);
+		
+		std::cout << std::endl;
 	}
 	
-	ncr::Rlc::Cleanup();				// Global RLC cleanup
+	ncr::Rlc::Cleanup();	// Global RLC cleanup
 	return 0;
 }
 
