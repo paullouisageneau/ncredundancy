@@ -37,9 +37,10 @@ public:
 
 	virtual double linkQualityFromDistance(double distance);	// Get q from distance
 	
-	void update(void);						// Update the cached matrices and routing
+	void update(void);						// Update the cached matrices, routing and factors
+	void updateFactors(void);					// Update factors only (link qualities and alphas)
 	void send(int source, int destination, unsigned count = 1);	// Send packets from source
-	bool step(void);						// Simulation step
+	bool step(bool flush = false);					// Simulation step
 	void reset(void);						// Reset simulation
 	unsigned received(int i) const;					// Count received (i.e. decoded)
 	unsigned seen(int i) const;					// Count seen

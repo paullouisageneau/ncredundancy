@@ -73,9 +73,9 @@ int main(int argc, char **argv)
 */
 
 	const int x = 3;
-	const int y = 3;
+	const int y = 2;
 	
-	for(int k=0; k<=20; ++k)
+	for(int k=0; k<=x*y; k+=1)
 	{
 		// Generate grid
 		ncr::Network network(seed);
@@ -83,7 +83,8 @@ int main(int argc, char **argv)
 		network.setThreshold(1.5);
 		
 		double p = 0.1; //0.05*k;
-		double alpha = 1.-0.05*k;
+		//double alpha = 1.-0.05*k;
+		int forwarding = k;
 		
 		for(int i=1; i<x; ++i)
 		{
@@ -93,20 +94,20 @@ int main(int argc, char **argv)
 				network.setJamming(n, p);
 			}
 			
-			network.setAlpha(1+i*y, alpha);
+			//network.setAlpha(1+i*y, alpha);
 		}
 		
-		ncr::Node::GenerationSize = 32;
-		ncr::Node::Tau = 0.01;
+		ncr::Node::GenerationSize = 16;
+		ncr::Node::Tau = 0.001;
 		
 		double lost;
 		double redundancy;
-		run(network, seed, 0, 1000, lost, redundancy);
+		run(network, seed, forwarding, 10000, lost, redundancy);
 		
-		std::cout << p << '\t' << alpha << '\t' << lost  << '\t' << redundancy;
+		std::cout << p << '\t' << forwarding << '\t' << lost  << '\t' << redundancy;
 		
-		for(int j=0; j<y; ++j)
-			std::cout << '\t' << network.emitted(1+y+j);
+		//for(int j=0; j<y; ++j)
+		//	std::cout << '\t' << network.emitted(1+y+j);
 		
 		std::cout << std::endl;
 	}
@@ -136,8 +137,10 @@ void run(ncr::Network &network,
 		std::set<int> temp;
 		for(int n=0; n<network.count(); ++n)
 		{
-			network.setForwarding(n, false);
-			temp.insert(n);
+			//network.setForwarding(n, false);
+			network.setAlpha(n, 1.);
+			if(n != source && n != destination)
+				temp.insert(n);
 		}
 		
 		for(int n=0; n<forwarding && !temp.empty(); ++n)
@@ -146,12 +149,15 @@ void run(ncr::Network &network,
 			boost::uniform_smallint<int> uniform(0, temp.size()-1);
 			int u = uniform(gen);
 			while(u--) ++it;
-			network.setForwarding(*it, true);
+			//network.setForwarding(*it, true);
+			network.setAlpha(*it, 0.1);
 			temp.erase(it);
 		}
 		
-		network.setForwarding(destination, false);
+		//network.setForwarding(destination, false);
+		
 		network.reset();
+		network.updateFactors();	// update link qualities and alphas
 		network.send(source, destination, ncr::Node::GenerationSize);
 		
 		// Verbose mode

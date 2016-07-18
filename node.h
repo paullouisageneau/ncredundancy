@@ -33,7 +33,7 @@ public:
 
 	void generate(int destination, unsigned count = 1);
 	void recv(const Packet &packet, int from = -1);		// Callback called when a packet is heard
-	void flush(int source, int destination);		// Callback called to flush a flow
+	void flush(void);					// Callback called to flush a flow
 	bool send(Packet &packet);				// Polling function for Network
 
 	unsigned received(void) const;				// Return recieved count (i.e. decoded)
@@ -53,7 +53,8 @@ public:
 	std::vector<int>	distances;
 	
 	Rlc			rlc;			// RLC coder/decoder
-	double			accumulator;		// Redundancy accumulator
+	double			rlcAccumulator;		// Redundancy accumulator
+	int			rlcSource, rlcDestination;
 	bool			forward;		// Forward-only mode ?
 	double			jamming;
 	

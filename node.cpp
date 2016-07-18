@@ -14,7 +14,9 @@ Node::Node(int _id, double _x, double _y) :
 	x(_x),
 	y(_y),
 	alpha(1.),
-	accumulator(0.),
+	rlcAccumulator(0.),
+	rlcSource(0),
+	rlcDestination(0),
 	forward(false),
 	jamming(0.),
 	emitted(0)
@@ -55,7 +57,7 @@ void Node::generate(int destination, unsigned count)
 		// Batch
 		rlc.fill(offset + count);
 		rlcRelay(id, id, destination, count);
-		flush(id, destination);
+		flush();
 		
 		// Pipeline
 		//for(unsigned c=0; c<count; ++c)
@@ -88,7 +90,7 @@ void Node::recv(const Packet &packet, int from)
 		if(packet.destination == id)
 			return; // We are the destination
 		
-		if(from != id && pathExists(from, packet.destination, distances[packet.destination]-1))
+		if(from != id && pathExists(from, packet.destination, distances[packet.destination] - 1))
 			return;	// We are not a next hop
 		
 		rlcRelay(from, packet.source, packet.destination, 1);
@@ -96,15 +98,15 @@ void Node::recv(const Packet &packet, int from)
 	}
 }
 
-void Node::flush(int source, int destination)
+void Node::flush()
 {
-	while(accumulator >= 1.)
+	while(rlcAccumulator >= 1.)
 	{
-		accumulator-= 1.;
+		rlcAccumulator-= 1.;
 		
-		Packet out(source, destination, PacketSize);	// create
-		rlc.generate(out);				// generate
-		outgoing.push(out);				// push out
+		Packet out(rlcSource, rlcDestination, PacketSize);	// create
+		rlc.generate(out);					// generate
+		outgoing.push(out);					// push out
 		++emitted;
 	}
 }
@@ -134,7 +136,7 @@ unsigned Node::seen(void) const
 void Node::reset(void)
 {
 	rlc.clear();
-	//accumulator = 0.;
+	//rlcAccumulator = 0.;
 	
 	while(!outgoing.empty())
 		outgoing.pop();
@@ -169,6 +171,11 @@ void Node::getNextHops(int i, int j, std::vector<int> &nexthops) const
 		
 		if(adjacency(i, v))
 		{
+			/*int d = 0;
+			if(i == id) d = distances[j];
+			else if(adjacency(id, i)) d = distances[j] + (pathExists(i, j, distances[j]) ? 0 : 1);
+			else d = distances[i] + distances[j];*/
+			
 			if(pathExists(v, j, distances[i] + distances[j] - 1))
 			{
 				nexthops.push_back(v);
@@ -182,20 +189,19 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	if(from < 0)
 		from = id;
 	
+	std::vector<int> prevhops;
 	double sigma = 1.;
 	if(from != id)
 	{
 		sigma = 0.;
-		std::vector<int> nexthops;
-		getNextHops(from, destination, nexthops);
-		for(int i=0; i<int(nexthops.size()); ++i)
+		getNextHops(from, destination, prevhops);
+		for(int i=0; i<int(prevhops.size()); ++i)
 		{
-			int n = nexthops[i];
-			sigma+= links(from,n)*alphas[n];
+			int n = prevhops[i];
+			sigma+= alphas[n]*links(from,n);
 		}
 	}
 
-	double p = 1.;
 	std::vector<int> nexthops;
 	getNextHops(id, destination, nexthops);
 	if(nexthops.empty())
@@ -205,13 +211,14 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
-		maxalpha = std::max(maxalpha, alphas[n]);
+		maxalpha = std::max(maxalpha, links(id,n)*alphas[n]);
 	}
 
+	double p = 1.;
 	for(int i=0; i<int(nexthops.size()); ++i)
 	{
 		int n = nexthops[i];
-		p*= pow(1. - links(id,n), alphas[n]/maxalpha);
+		p*= 1. - links(id,n)*links(id,n)*alphas[n]/maxalpha;
 	}
 
 	p+= 0.004;	// should be ~ 0.004
@@ -222,14 +229,16 @@ void Node::rlcRelay(int from, int source, int destination, unsigned count)
 	const double C = (-std::log(tau)/m) * (p/(1.-p));
 	const double A = (1. + std::sqrt(2.*C));
 	const double rbound = 1./(1.-p) * (1. + A*A)/2.;
-	const double redundancy = rbound*alpha/sigma;
+	const double redundancy = (from != id ? rbound*alpha/sigma : rbound);
 	
-	//std::cout << "node " << id << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\talpha=" << alpha << "\tredundancy=" << redundancy << std::endl;
+	//std::cout << "node " << id << "\tprevhops=" << prevhops.size() << "\tnexthops=" << nexthops.size() << "\tp=" << p << "\ttau_local=" << tau << "\tr_avg=" << 1./(1.-p) << "\tr_bound=" << rbound << "\tsigma=" << sigma << "\talpha=" << alpha << "\tredundancy=" << redundancy << std::endl;
 
 	// Test only
 	//double redundancy = 1 + Node::Tau;
 
-	accumulator+= redundancy*count;
+	rlcAccumulator+= redundancy*count;
+	rlcSource = source;
+	rlcDestination = destination;
 }
 
 std::ostream &operator<<(std::ostream &s, const Node &node)

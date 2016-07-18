@@ -95,6 +95,8 @@ double Network::linkQualityFromDistance(double distance)
 
 void Network::update(void)
 {
+	updateFactors();
+	
 	computeLinkMatrix(links);
 	computeAdjacencyMatrix(adjacency);
 	
@@ -103,10 +105,8 @@ void Network::update(void)
 
 	for(int i=0; i<count(); ++i)
 	{
-		getNeighbors(i, nodes[i].neighbors);
-		nodes[i].links = links;
 		nodes[i].adjacency = adjacency;
-
+		getNeighbors(i, nodes[i].neighbors);
 		computeRouting(i, nodes[i].routes, nodes[i].distances);
 		
 		// Fill matrixes
@@ -116,10 +116,15 @@ void Network::update(void)
 			distances(i, j) = nodes[i].distances[j];
 		}
 	}
+}
 
-	// Fill alphas
+void Network::updateFactors(void)
+{
+	// Fill link qualities and alphas
 	for(int i=0; i<count(); ++i)
 	{
+		nodes[i].links = links;
+		
 		nodes[i].alphas.resize(count());
 		for(int j=0; j<count(); ++j)
 		{
@@ -133,23 +138,26 @@ void Network::send(int source, int destination, unsigned count)
 	nodes[source].generate(destination, count);
 }
 
-bool Network::step(void)
+bool Network::step(bool flush)
 {
 	int first = nextStepNode;
 	for(int i=0; i<count(); i++)
 	{
-		int node = (first + i) % count();
-		nextStepNode = (node + 1) % count();
+		int n = (first + i) % count();
+		nextStepNode = (n + 1) % count();
+		
+		if(flush) nodes[n].flush();
 		
 		Packet packet;
-		if(nodes[node].send(packet))
+		if(nodes[n].send(packet))
 		{
-			sendPacket(packet, node);
+			sendPacket(packet, n);
 			return true;
 		}
 	}
 	
-	return false;
+	if(!flush) return step(true);
+	else return false;
 }
 
 void Network::reset(void)
@@ -265,8 +273,8 @@ void Network::sendPacket(const Packet &packet, int sender)
 			++totalLost;
 		}
 		
-		if(packet.last)
-			nodes[v].flush(packet.source, packet.destination);
+		//if(packet.last)
+		//	nodes[v].flush();
 	}
 }
 
